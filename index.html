@@ -2,180 +2,76 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>싱글 홀덤 - 텍사스 홀덤 혼자 즐기기</title>
-<link rel="stylesheet" href="css/style.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>싱글 게임방 - 혼자 즐기는 카드 게임 모음</title>
+<link rel="stylesheet" href="css/lobby.css" />
 </head>
 <body>
 
-<div id="app">
-
-  <!-- 상단 바 -->
-  <header class="topbar">
-    <div class="brand"><span class="logo">♠</span> 싱글 홀덤</div>
-    <div class="topinfo">
-      <span class="chip-badge">보유 칩 <b id="myChips">0</b></span>
-      <span class="blind-badge">블라인드 <b id="blindInfo">-</b></span>
-      <span class="hand-badge"><b id="handNo">0</b> 판째</span>
-    </div>
-    <div class="topbtns">
-      <button id="btnAuto" class="ghost" title="판이 끝나면 자동으로 다음 판 시작">자동 진행 끔</button>
-      <button id="btnSpeed" class="ghost" title="상대가 생각하는 시간">속도 보통</button>
-      <button id="btnLevel" class="ghost" title="상대 실력과 판돈 크기">난이도 중급</button>
-      <button id="btnHint" class="ghost" title="승률과 드로 안내 표시 여부">힌트 켬</button>
-      <button id="btnStats" class="ghost">전적</button>
-      <button id="btnSound" class="ghost" title="소리 켜기/끄기">🔊</button>
-      <button id="btnRules" class="ghost">규칙</button>
-      <button id="btnReset" class="ghost">초기화</button>
-    </div>
+<div class="lobby">
+  <header class="lobby-head">
+    <div class="neon-title"><span class="suit">♠</span> 싱글 게임방 <span class="suit">♥</span></div>
+    <p class="sub">혼자서 즐기는 카드 게임 모음 · 설치 없이 바로 실행</p>
   </header>
 
-  <!-- 테이블 -->
-  <main class="table-wrap">
-    <div class="table" id="table">
-      <div class="felt-logo">HOLD'EM</div>
-
-      <div class="center">
-        <div class="pot-chips" id="potChips"></div>
-        <div class="pot-box" id="potBox">팟 <b id="potAmt">0</b></div>
-        <div class="community" id="community"></div>
-        <div class="street-label" id="streetLabel"></div>
+  <main class="game-grid">
+    <a class="game-card holdem" href="holdem.html">
+      <div class="gc-badge">포커</div>
+      <div class="gc-art">
+        <span class="mini-card red">A<i>♥</i></span>
+        <span class="mini-card black">K<i>♠</i></span>
       </div>
+      <h2>텍사스 홀덤</h2>
+      <p>개인 카드 2장과 공개 카드 5장으로 최고의 다섯 장을 만든다. 컴퓨터 상대 3명과 대결.</p>
+      <div class="gc-tags"><span>노리밋</span><span>난이도 3단계</span><span>전적 기록</span></div>
+    </a>
 
-      <!-- 좌석 4개: 0=나(하단), 1=좌, 2=상, 3=우 -->
-      <div class="seat" id="seat-0"></div>
-      <div class="seat" id="seat-1"></div>
-      <div class="seat" id="seat-2"></div>
-      <div class="seat" id="seat-3"></div>
+    <a class="game-card seven" href="seven.html">
+      <div class="gc-badge">포커</div>
+      <div class="gc-art">
+        <span class="mini-card black">7<i>♣</i></span>
+        <span class="mini-card red">7<i>♦</i></span>
+      </div>
+      <h2>세븐 포커</h2>
+      <p>일곱 장을 받아 그중 다섯 장으로 겨룬다. 마운틴과 백스트레이트가 있는 우리식 족보.</p>
+      <div class="gc-tags"><span>스터드</span><span>우리식 족보</span><span>오픈 카드</span></div>
+    </a>
 
-      <div class="bet-chip" id="bet-0"></div>
-      <div class="bet-chip" id="bet-1"></div>
-      <div class="bet-chip" id="bet-2"></div>
-      <div class="bet-chip" id="bet-3"></div>
+    <a class="game-card sutda2" href="sutda.html?cards=2">
+      <div class="gc-badge kr">화투</div>
+      <div class="gc-art">
+        <span class="hana">3</span><span class="hana">8</span>
+      </div>
+      <h2>두 장 섯다</h2>
+      <p>화투 두 장으로 끝내는 한판 승부. 광땡부터 망통까지, 암행어사와 땡잡이도 그대로.</p>
+      <div class="gc-tags"><span>정통 족보</span><span>특수패</span><span>심리전</span></div>
+    </a>
 
-      <div id="dealerBtn" class="dealer-btn">D</div>
+    <a class="game-card sutda3" href="sutda.html?cards=3">
+      <div class="gc-badge kr">화투</div>
+      <div class="gc-art">
+        <span class="hana">1</span><span class="hana">4</span><span class="hana">9</span>
+      </div>
+      <h2>세 장 섯다</h2>
+      <p>세 장을 받아 두 장을 골라 낸다. 무엇을 버릴지가 승부를 가른다.</p>
+      <div class="gc-tags"><span>패 선택</span><span>확장 규칙</span><span>고난도</span></div>
+    </a>
 
-      <div class="result-banner" id="resultBanner"></div>
-    </div>
+    <a class="game-card gostop" href="gostop.html">
+      <div class="gc-badge kr">화투</div>
+      <div class="gc-art">
+        <span class="hana gwang">광</span><span class="hana">고</span>
+      </div>
+      <h2>맞고 (고스톱)</h2>
+      <p>화투 마흔여덟 장으로 벌이는 일대일 승부. 광 · 띠 · 열끗 · 피를 모아 삼 점을 먼저.</p>
+      <div class="gc-tags"><span>일대일</span><span>고와 스톱</span><span>박 계산</span></div>
+    </a>
   </main>
 
-  <!-- 하단 조작부 -->
-  <section class="controls">
-    <div class="myinfo">
-      <div class="myrank">내 패 <b id="myRank">-</b><span class="notation" id="myNotation"></span></div>
-      <div class="equity-row">
-        <div class="equity-bar"><i id="equityFill"></i></div>
-        <span class="equity-text" id="equityText">승률 -</span>
-      </div>
-      <div class="draw-info" id="drawInfo"></div>
-      <div class="hint" id="actionHint">새 게임을 시작하세요</div>
-      <div class="keys">단축키 <b>F</b> 다이 · <b>C</b> 체크·콜 · <b>R</b> 레이즈 · <b>1</b>~<b>5</b> 프리셋 베팅 · <b>Enter</b> 다음 판</div>
-    </div>
-
-    <div class="bet-area">
-      <div class="raise-panel" id="raisePanel">
-        <div class="presets">
-          <button class="preset" data-preset="min"><b>최소</b><span class="pamt">-</span></button>
-          <button class="preset" data-preset="half"><b>1/2 팟</b><span class="pamt">-</span></button>
-          <button class="preset" data-preset="threeq"><b>3/4 팟</b><span class="pamt">-</span></button>
-          <button class="preset" data-preset="pot"><b>팟</b><span class="pamt">-</span></button>
-          <button class="preset allin" data-preset="allin"><b>올인</b><span class="pamt">-</span></button>
-          <button class="preset tune" id="btnTune"><b>직접</b><span class="pamt">조절</span></button>
-        </div>
-        <div class="slider-row" id="sliderRow">
-          <input type="range" id="raiseSlider" min="0" max="100" value="0" />
-          <span class="raise-amt">베팅액 <b id="raiseAmt">0</b></span>
-        </div>
-      </div>
-
-      <div class="pre-actions" id="preActions">
-        <span class="pre-label">미리 정하기</span>
-        <button class="pre" data-pre="checkfold">체크 · 다이</button>
-        <button class="pre" data-pre="call">콜</button>
-      </div>
-
-      <div class="actions">
-        <button id="btnFold" class="act fold">다이</button>
-        <button id="btnCheck" class="act check">체크</button>
-        <button id="btnCall" class="act call">콜</button>
-        <button id="btnRaise" class="act raise">레이즈</button>
-        <button id="btnStart" class="act start">게임 시작</button>
-        <button id="btnRebuy" class="act rebuy">리바이</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- 진행 기록 -->
-  <aside class="logbox">
-    <div class="logtitle">진행 기록</div>
-    <ul id="logList"></ul>
-  </aside>
+  <footer class="lobby-foot">
+    <span>모든 게임은 브라우저만으로 동작합니다. 진행 상황은 기기에 저장됩니다.</span>
+  </footer>
 </div>
 
-<!-- 난이도 -->
-<div class="modal" id="levelModal">
-  <div class="modal-inner">
-    <h2>난이도 선택</h2>
-    <p class="stat-note">난이도를 바꾸면 판돈과 상대가 새로 정해지고 보유 칩이 초기화됩니다. 누적 전적은 그대로 남습니다.</p>
-    <div class="level-list" id="levelList"></div>
-    <div class="stat-actions">
-      <button class="act call" id="btnCloseLevel">닫기</button>
-    </div>
-  </div>
-</div>
-
-<!-- 전적 -->
-<div class="modal" id="statsModal">
-  <div class="modal-inner">
-    <h2>전적</h2>
-    <div class="stat-grid" id="statGrid"></div>
-    <h3>상대 분석</h3>
-    <p class="stat-note">참여율은 프리플랍에 스스로 칩을 넣은 비율, 레이즈율은 프리플랍에서 올린 비율, 공격성은 플랍 이후 액션 중 올린 비율입니다.</p>
-    <table class="rival-table" id="rivalTable"></table>
-    <div class="stat-actions">
-      <button class="act fold" id="btnStatsClear">전적 지우기</button>
-      <button class="act call" id="btnCloseStats">닫기</button>
-    </div>
-  </div>
-</div>
-
-<!-- 규칙 안내 -->
-<div class="modal" id="rulesModal">
-  <div class="modal-inner">
-    <h2>텍사스 홀덤 규칙</h2>
-    <ul>
-      <li><b>진행</b> — 각자 개인 카드 2장을 받고, 테이블에 공개 카드가 플랍 3장 · 턴 1장 · 리버 1장 순으로 깔린다. 개인 2장 + 공개 5장, 총 7장 중 가장 좋은 5장으로 승부.</li>
-      <li><b>베팅</b> — 프리플랍 · 플랍 · 턴 · 리버, 총 네 번의 베팅 라운드가 있다.</li>
-      <li><b>다이</b> 포기 · <b>체크</b> 추가 베팅 없이 넘기기 · <b>콜</b> 상대 베팅액 맞추기 · <b>레이즈</b> 금액 올리기.</li>
-      <li><b>블라인드</b> — 딜러 버튼 왼쪽 두 명이 스몰/빅 블라인드를 강제로 낸다. 매 판 버튼이 시계 방향으로 넘어간다.</li>
-      <li><b>올인</b> — 칩이 부족하면 가진 만큼만 걸 수 있고, 초과분은 사이드 팟으로 분리된다.</li>
-    </ul>
-    <h3>족보 (높은 순)</h3>
-    <ol class="rank-list">
-      <li>로열 스트레이트 플러시 — 같은 무늬 10·J·Q·K·A</li>
-      <li>스트레이트 플러시 — 같은 무늬 연속 5장</li>
-      <li>포카드 — 같은 숫자 4장</li>
-      <li>풀하우스 — 트리플 + 원페어</li>
-      <li>플러시 — 같은 무늬 5장</li>
-      <li>스트레이트 — 연속 5장 (A는 위아래 모두 가능)</li>
-      <li>트리플 — 같은 숫자 3장</li>
-      <li>투페어 — 페어 2개</li>
-      <li>원페어 — 같은 숫자 2장</li>
-      <li>하이카드 — 위 어디에도 못 드는 경우</li>
-    </ol>
-    <h3>단축키</h3>
-    <ul>
-      <li><b>F</b> 다이 · <b>C</b> 체크 또는 콜 · <b>R</b> 레이즈 · <b>Enter</b> 다음 판 · <b>ESC</b> 창 닫기</li>
-      <li><b>1</b> 최소 · <b>2</b> 1/2 팟 · <b>3</b> 3/4 팟 · <b>4</b> 팟 · <b>5</b> 올인 — 누르는 즉시 베팅됩니다</li>
-    </ul>
-    <button class="act call" id="btnCloseRules">닫기</button>
-  </div>
-</div>
-
-<script src="js/cards.js"></script>
-<script src="js/evaluator.js"></script>
-<script src="js/ai.js"></script>
-<script src="js/game.js"></script>
-<script src="js/ui.js"></script>
 </body>
 </html>

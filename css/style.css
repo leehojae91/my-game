@@ -93,7 +93,11 @@ body::after {
   font-size: 18px; font-weight: 800; letter-spacing: 1px; color: #fff4d6;
   text-shadow: 0 0 6px var(--gold), 0 0 16px rgba(255,210,90,.7), 0 0 30px rgba(255,61,154,.5);
 }
-.brand .logo { font-size: 20px; }
+.brand .logo, .brand .home {
+  font-size: 20px; color: inherit; text-decoration: none;
+  display: inline-block; transition: transform .15s;
+}
+.brand .home:hover { transform: scale(1.2) rotate(-8deg); }
 .topinfo { display: flex; gap: 14px; font-size: 13px; color: var(--muted); white-space: nowrap; }
 .topinfo b { color: var(--text); font-size: 14px; }
 .chip-badge b { color: var(--gold); }
@@ -850,7 +854,11 @@ body::after {
   .topbar { padding: 0 8px; }
   .brand span:not(.logo) { display: none; }
   .brand { font-size: 0; }
-  .brand .logo { font-size: 20px; }
+  .brand .logo, .brand .home {
+  font-size: 20px; color: inherit; text-decoration: none;
+  display: inline-block; transition: transform .15s;
+}
+.brand .home:hover { transform: scale(1.2) rotate(-8deg); }
   .topinfo { gap: 8px; font-size: 11px; min-width: 0; }
   .chip-badge { flex: 0 0 auto; }
   .blind-badge, .hand-badge { display: none; }
