@@ -57,11 +57,12 @@
     return (win + tie * 0.5) / iters;
   }
 
+  /* 실측상 400~900회도 한 번에 10밀리초 미만이라 정확도를 우선한다 */
   function itersFor(street) {
-    if (street === 'preflop') return 240;
-    if (street === 'flop') return 260;
-    if (street === 'turn') return 320;
-    return 420;
+    if (street === 'preflop') return 400;
+    if (street === 'flop') return 500;
+    if (street === 'turn') return 650;
+    return 800;
   }
 
   /**

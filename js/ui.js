@@ -24,6 +24,7 @@
     auto: false,
     fast: false,
     autoTimer: null,
+    autoPaused: false,
     chipsAtStart: 0,
     boardHand: -1,
     boardCount: 0,
@@ -239,7 +240,7 @@
               G.board.map(Cards.cardLabel).join('') + '|' + opp;
     if (state.eqKey === key) return state.eqVal;
     state.eqKey = key;
-    state.eqVal = AI.equity(me.hole, G.board, opp, G.board.length >= 4 ? 500 : 320);
+    state.eqVal = AI.equity(me.hole, G.board, opp, G.board.length >= 4 ? 1200 : 800);
     return state.eqVal;
   }
 
@@ -447,6 +448,22 @@
     if (iWon) setTimeout(function () { beep(1318, 0.25, 0.05); }, 130);
   }
 
+  /* 창을 열면 자동 진행을 멈추고, 닫으면 이어서 진행한다 */
+  function openModal(id) {
+    if (state.autoTimer) {
+      clearTimeout(state.autoTimer);
+      state.autoTimer = null;
+      state.autoPaused = true;
+    }
+    $(id).classList.add('open');
+  }
+  function closeModal(id) {
+    $(id).classList.remove('open');
+    if (!state.autoPaused) return;
+    state.autoPaused = false;
+    if (state.auto && !Game.data.inHand && $('btnStart').style.display !== 'none') startHand();
+  }
+
   /* ---------- 전적 ---------- */
   function collectStats(results) {
     var me = Game.human();
@@ -608,11 +625,17 @@
 
     function paintToggles() {
       var a = $('btnAuto'), s = $('btnSpeed');
-      a.textContent = state.auto ? '자동 진행 켬' : '자동 진행 끔';
+      var narrow = window.innerWidth <= 780;   // 좁은 화면에서는 라벨을 줄인다
+      a.textContent = narrow
+        ? (state.auto ? '자동 켬' : '자동 끔')
+        : (state.auto ? '자동 진행 켬' : '자동 진행 끔');
       a.classList.toggle('on', state.auto);
-      s.textContent = state.fast ? '속도 빠름' : '속도 보통';
+      s.textContent = narrow
+        ? (state.fast ? '빠름' : '보통')
+        : (state.fast ? '속도 빠름' : '속도 보통');
       s.classList.toggle('on', state.fast);
     }
+    window.addEventListener('resize', paintToggles);
     $('btnAuto').onclick = function () {
       state.auto = !state.auto;
       paintToggles();
@@ -628,19 +651,19 @@
     };
     paintToggles();
 
-    $('btnStats').onclick = function () { renderStats(); $('statsModal').classList.add('open'); };
-    $('btnCloseStats').onclick = function () { $('statsModal').classList.remove('open'); };
-    $('statsModal').onclick = function (e) { if (e.target === this) this.classList.remove('open'); };
+    $('btnStats').onclick = function () { renderStats(); openModal('statsModal'); };
+    $('btnCloseStats').onclick = function () { closeModal('statsModal'); };
+    $('statsModal').onclick = function (e) { if (e.target === this) closeModal('statsModal'); };
     $('btnStatsClear').onclick = function () {
       stats.hands = 0; stats.wins = 0; stats.showdowns = 0;
       stats.bestPot = 0; stats.net = 0; stats.bestHand = null;
       save();
       renderStats();
     };
-    $('btnRules').onclick = function () { $('rulesModal').classList.add('open'); };
-    $('btnCloseRules').onclick = function () { $('rulesModal').classList.remove('open'); };
+    $('btnRules').onclick = function () { openModal('rulesModal'); };
+    $('btnCloseRules').onclick = function () { closeModal('rulesModal'); };
     $('rulesModal').onclick = function (e) {
-      if (e.target === this) this.classList.remove('open');
+      if (e.target === this) closeModal('rulesModal');
     };
 
     $('btnReset').onclick = function () {
@@ -652,6 +675,11 @@
 
     /* 단축키 */
     document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        if ($('statsModal').classList.contains('open')) closeModal('statsModal');
+        if ($('rulesModal').classList.contains('open')) closeModal('rulesModal');
+        return;
+      }
       if (!state.myTurn) {
         if (e.key === 'Enter' && $('btnStart').style.display !== 'none') startHand();
         return;
