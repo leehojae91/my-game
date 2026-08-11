@@ -329,6 +329,8 @@
     }
 
     animatePot(G.pot);
+    /* 팟이 비었으면 표시 자체를 숨긴다 */
+    $('potBox').style.visibility = G.pot > 0 ? 'visible' : 'hidden';
     /* 팟도 칩 더미로 보여 준다 */
     var potKey = G.pot;
     if (state.potChipKey !== potKey) {
@@ -700,6 +702,36 @@
     });
   }
 
+  /* 팟이 승자에게 넘어가는 연출 */
+  function flyPotToWinner(p, amount) {
+    var table = $('table');
+    var potBox = $('potBox');
+    var seat = $('seat-' + p.id);
+    if (!table || !potBox || !seat) return;
+
+    var tr = table.getBoundingClientRect();
+    var pr = potBox.getBoundingClientRect();
+    var sr = seat.getBoundingClientRect();
+
+    var node = document.createElement('div');
+    node.className = 'bet-chip flying';
+    node.style.display = 'flex';
+    node.style.left = Math.round(pr.left - tr.left) + 'px';
+    node.style.top = Math.round(pr.top - tr.top) + 'px';
+    node.innerHTML = '<span class="stack">' + chipStackHtml(amount, 5) + '</span>';
+    table.appendChild(node);
+
+    var dx = (sr.left + sr.width / 2) - (pr.left + pr.width / 2);
+    var dy = (sr.top + sr.height / 2) - (pr.top + pr.height / 2);
+    requestAnimationFrame(function () {
+      node.style.transform = 'translate(' + Math.round(dx) + 'px,' + Math.round(dy) + 'px) scale(.8)';
+      node.style.opacity = '0';
+    });
+    setTimeout(function () {
+      if (node.parentNode) node.parentNode.removeChild(node);
+    }, 700);
+  }
+
   function floatWin(p, amount) {
     var tag = document.createElement('div');
     tag.className = 'fx float-win';
@@ -717,7 +749,9 @@
         r.best.best.forEach(function (c) { state.highlight[cardKey(c)] = true; });
       }
       r.winners.forEach(function (p) {
-        floatWin(p, Math.round(r.amount / r.winners.length));
+        var share = Math.round(r.amount / r.winners.length);
+        flyPotToWinner(p, share);
+        setTimeout(function () { floatWin(p, share); }, 420);
       });
     });
     render();

@@ -167,12 +167,15 @@ body::before {
   z-index: 2;
 }
 .pot-box {
-  background: rgba(0,0,0,.42); border: 1px solid var(--gold-dim);
-  color: var(--gold); border-radius: 20px; padding: 4px 16px; font-size: 13px;
+  background: linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,.42));
+  border: 1px solid rgba(232,196,106,.5);
+  color: var(--gold); border-radius: 20px; padding: 5px 18px; font-size: 12px;
+  letter-spacing: .5px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.09);
 }
-.pot-box b { color: #fff; font-size: 15px; }
+.pot-box b { color: #fff; font-size: 17px; letter-spacing: 0; }
 .community { display: flex; gap: 6px; }
-.street-label { font-size: 12px; color: rgba(255,255,255,.55); letter-spacing: 2px; }
+.street-label { font-size: 11px; color: rgba(255,255,255,.5); letter-spacing: 2px; }
 
 /* ---------- 카드 ---------- */
 .card {
@@ -236,9 +239,11 @@ body::before {
 }
 .board-card.fresh { animation: dealin .34s ease-out backwards; }
 .board-card.empty {
-  background: rgba(255,255,255,.05); border: 1px dashed rgba(255,255,255,.16);
-  box-shadow: none;
+  background: rgba(255,255,255,.035);
+  border: 1px dashed rgba(255,255,255,.13);
+  box-shadow: inset 0 0 18px rgba(0,0,0,.18);
 }
+.board-card.empty::after { display: none; }
 @keyframes dealin {
   from { transform: translateY(-22px) rotateY(70deg) scale(.86); opacity: 0; }
   to { transform: none; opacity: 1; }
@@ -450,19 +455,28 @@ body::before {
 /* 보드 카드를 가리지 않도록 테이블 위쪽에 띄운다 */
 .result-banner {
   position: absolute; top: 25%; left: 50%;
-  transform: translate(-50%, -50%) scale(.9);
-  background: rgba(6,12,20,.94); border: 2px solid var(--gold);
-  border-radius: 14px; padding: 12px 24px; text-align: center;
-  opacity: 0; pointer-events: none; transition: all .25s;
-  min-width: 240px; z-index: 5;
+  transform: translate(-50%, -50%) scale(.88);
+  background: linear-gradient(180deg, rgba(12,20,31,.96), rgba(4,8,14,.96));
+  border: 2px solid var(--gold);
+  border-radius: 16px; padding: 14px 28px; text-align: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s, transform .28s cubic-bezier(.34, 1.56, .64, 1);
+  min-width: 250px; z-index: 5;
+  box-shadow: 0 18px 44px rgba(0,0,0,.65), 0 0 40px rgba(232,196,106,.16);
 }
 .result-banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 .rline b { color: var(--gold); }
-.result-banner.win { border-color: var(--green); }
+.result-banner.win {
+  border-color: var(--green);
+  box-shadow: 0 18px 44px rgba(0,0,0,.65), 0 0 48px rgba(47,181,106,.32);
+}
 .result-banner.allin { border-color: var(--red); }
 .result-banner.allin .rtitle { color: #ff8a7a; letter-spacing: 4px; }
 .result-banner.lose { border-color: #5a6b80; }
-.rtitle { font-size: 24px; font-weight: 800; margin-bottom: 6px; color: var(--gold); }
+.rtitle {
+  font-size: 26px; font-weight: 800; margin-bottom: 6px; color: var(--gold);
+  letter-spacing: 6px; text-shadow: 0 2px 10px rgba(0,0,0,.7);
+}
 .result-banner.win .rtitle { color: var(--green); }
 .result-banner.lose .rtitle { color: #93a5bb; }
 .rline { font-size: 13px; color: #d6e2f0; margin-top: 2px; }
@@ -557,9 +571,14 @@ body::before {
 
 .actions { display: flex; gap: 8px; }
 .act {
-  flex: 1; min-width: 96px; padding: 12px 14px; border-radius: 8px; border: none;
+  flex: 1; min-width: 96px; padding: 12px 14px; border-radius: 9px; border: none;
   font-size: 15px; font-weight: 700; cursor: pointer; color: #fff;
   font-family: inherit; transition: transform .08s, filter .15s;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -2px 4px rgba(0,0,0,.28),
+    0 4px 10px rgba(0,0,0,.4);
+  text-shadow: 0 1px 2px rgba(0,0,0,.35);
 }
 .act:hover { filter: brightness(1.12); }
 .act:active { transform: translateY(1px); }
@@ -655,7 +674,8 @@ body::before {
   .dealer-btn.d-1 { left: 18%; top: 34%; }
   .dealer-btn.d-2 { top: 19%; left: 42%; }
   .dealer-btn.d-3 { right: 18%; top: 34%; }
-  .result-banner { top: 46%; padding: 10px 16px; min-width: 200px; }
+  .result-banner { top: 30%; padding: 10px 16px; min-width: 200px; }
+  .rtitle { font-size: 21px; letter-spacing: 4px; }
 
   .seat { width: 152px; padding: 4px 6px; gap: 5px; }
   .avatar { width: 30px; height: 30px; flex-basis: 30px; font-size: 12px; border-width: 1px; }
