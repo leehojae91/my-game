@@ -1,0 +1,307 @@
+/* 맞고 - 동양풍 화면 */
+
+body.kr {
+  --gold: #ffcf6a;
+  --gold-dim: #a8791f;
+  --kr-red: #c8202f;
+  --text: #f6ecd8;
+  --muted: #bda98a;
+  --green: #3fbf7a;
+  --red: #ef5566;
+
+  background:
+    radial-gradient(900px 540px at 20% -8%, rgba(200,32,47,.32) 0%, transparent 60%),
+    radial-gradient(820px 500px at 82% 2%, rgba(255,180,80,.20) 0%, transparent 60%),
+    linear-gradient(180deg, #22120f 0%, #0e0708 100%);
+}
+body.kr::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.014) 0 1px, transparent 1px 5px);
+  animation: none;
+}
+body.kr::after { content: none; }
+
+#app {
+  grid-template-columns: 1fr 260px;
+  grid-template-rows: 52px 1fr 76px;
+  grid-template-areas:
+    "top top"
+    "board log"
+    "ctrl log";
+}
+
+body.kr .topbar {
+  background: linear-gradient(180deg, rgba(58,20,20,.94), rgba(24,10,10,.94));
+  border: 1px solid rgba(255,207,106,.4);
+  box-shadow: 0 0 18px rgba(200,32,47,.35), inset 0 1px 0 rgba(255,255,255,.07);
+}
+body.kr .brand { color: #ffe9bd; letter-spacing: 3px; text-shadow: 0 0 6px var(--gold); }
+body.kr .ghost {
+  background: rgba(88,28,28,.72); color: #e8cfa6; border-color: rgba(255,207,106,.35);
+}
+body.kr .ghost:hover { background: rgba(122,38,38,.9); color: #fff; }
+body.kr .ghost.on {
+  background: rgba(200,32,47,.28); color: #ffd9c0; border-color: var(--kr-red);
+  box-shadow: 0 0 10px rgba(200,32,47,.6);
+}
+body.kr .controls, body.kr .logbox {
+  background: linear-gradient(180deg, rgba(52,18,18,.93), rgba(18,7,8,.95));
+  border-color: rgba(255,207,106,.3);
+}
+body.kr .logtitle { color: #e8c9a0; border-bottom-color: rgba(255,207,106,.28); }
+
+/* ---------- 판 전체 ---------- */
+.board-wrap {
+  grid-area: board;
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 8px;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(255,225,180,.10) 0%, transparent 62%),
+    linear-gradient(180deg, #6d1826 0%, #4d101c 55%, #2e0810 100%);
+  border: 8px solid transparent;
+  border-radius: 16px;
+  padding: 10px 12px;
+  box-shadow:
+    0 0 0 2px rgba(255,207,106,.45),
+    inset 0 0 70px rgba(0,0,0,.5),
+    0 20px 50px rgba(0,0,0,.6);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ---------- 위·아래 사람 영역 ---------- */
+.side {
+  background: rgba(20,7,9,.5);
+  border: 1px solid rgba(255,207,106,.25);
+  border-radius: 10px;
+  padding: 6px 9px;
+}
+.side.me { border-color: rgba(255,207,106,.5); }
+.side-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.who { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.who .avatar {
+  width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+  background: linear-gradient(160deg, #a8434a, #5c1a20);
+  border: 2px solid #d98a72;
+}
+.who .avatar.me-av { background: linear-gradient(160deg, #d4a24a, #8a5a12); border-color: #ffd98a; }
+.who .money { color: var(--gold); font-weight: 800; font-size: 14px; }
+
+.score-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11px; color: #d9c2a0; }
+.score-line .total {
+  font-size: 15px; font-weight: 800; color: #e8d0a8;
+  background: rgba(0,0,0,.4); border: 1px solid rgba(255,207,106,.3);
+  border-radius: 12px; padding: 1px 10px;
+}
+.score-line .total.on {
+  color: #fff2c9; border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(255,207,106,.6);
+}
+.score-line .sp { color: #c8a982; }
+.score-line .sp b { color: var(--gold); }
+.score-line .gocnt {
+  color: #ffd0c0; background: rgba(200,32,47,.35);
+  border: 1px solid rgba(255,120,90,.6); border-radius: 10px; padding: 1px 8px;
+  font-weight: 700;
+}
+
+/* 획득 카드 */
+.capture { display: flex; gap: 10px; margin-top: 5px; flex-wrap: wrap; min-height: 38px; }
+.cap-group { display: flex; align-items: center; gap: 4px; }
+.cap-label { font-size: 10px; color: #bfa583; white-space: nowrap; }
+.cap-label b { color: var(--gold); font-size: 12px; }
+.cap-cards { display: flex; }
+.cap-cards .go { margin-left: -14px; }
+.cap-cards .go:first-child { margin-left: 0; }
+
+.opp-hand { display: flex; gap: 2px; margin-top: 5px; }
+
+/* ---------- 바닥 ---------- */
+.floor-area {
+  position: relative;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  min-height: 0;
+}
+.floor {
+  display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
+  gap: 5px; max-width: 640px;
+}
+.deck-box { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 0 0 auto; }
+.deck-count { font-size: 11px; color: #d9c2a0; }
+.deck-count b { color: var(--gold); font-size: 13px; }
+.flip-slot {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.flip-label { font-size: 10px; color: #ffd0a0; }
+
+/* ---------- 내 손패 ---------- */
+.myhand-area { display: flex; align-items: center; gap: 10px; }
+.hand-label { font-size: 12px; color: #e0c6a0; white-space: nowrap; }
+.myhand { display: flex; gap: 4px; flex-wrap: wrap; }
+
+/* ---------- 화투 카드 ---------- */
+.go {
+  position: relative;
+  width: 40px; height: 60px; flex: 0 0 auto;
+  border-radius: 5px;
+  background: linear-gradient(170deg, #fbf5e6 0%, #eee0c2 55%, #e2d1ab 100%);
+  border: 2px solid var(--kr-red);
+  box-shadow: 0 3px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.9);
+  display: flex; align-items: center; justify-content: center;
+  color: #2a1a0c; overflow: hidden;
+  transition: transform .12s, box-shadow .12s;
+}
+.go .gm {
+  position: absolute; top: 1px; left: 3px;
+  font-size: 10px; font-weight: 800; color: #8a1520;
+}
+.go .gsym { font-size: 20px; font-weight: 800; line-height: 1; }
+.go .gk {
+  position: absolute; bottom: 1px; left: 0; right: 0; text-align: center;
+  font-size: 9px; font-weight: 700; color: #6b4a22;
+}
+.go.g1 .gsym { color: #1f6b3a; }
+.go.g2 .gsym { color: #c2437e; }
+.go.g3 .gsym { color: #d8557f; }
+.go.g4 .gsym { color: #4a3a6b; }
+.go.g5 .gsym { color: #7a4bb0; }
+.go.g6 .gsym { color: #b42a5a; }
+.go.g7 .gsym { color: #a8512a; }
+.go.g8 .gsym { color: #4a5a70; }
+.go.g9 .gsym { color: #c79a1e; }
+.go.g10 .gsym { color: #d2662a; }
+.go.g11 .gsym { color: #7b5a2a; }
+.go.g12 .gsym { color: #3a4a5a; }
+
+/* 종류별 표시 */
+.go.t-gwang {
+  background: linear-gradient(170deg, #fff6d8 0%, #f4dfa0 55%, #eccd7e 100%);
+  box-shadow: 0 3px 10px rgba(0,0,0,.5), 0 0 12px rgba(255,207,106,.6), inset 0 1px 0 rgba(255,255,255,.95);
+}
+.go.t-gwang .gk { color: var(--kr-red); font-weight: 800; }
+.go.t-ssang .gk { color: #b8143a; font-weight: 800; }
+.go.t-tti .gk { color: #1c5aa8; }
+.go.t-yeol .gk { color: #2a7a4a; }
+
+.go.back {
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 4px, transparent 4px 8px),
+    linear-gradient(170deg, #9c1c26 0%, #6e1119 60%, #4a0b11 100%);
+  border-color: #4a0b11;
+}
+.go.back::before {
+  content: '❋'; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,220,170,.35); font-size: 18px;
+}
+
+/* 크기 변형 */
+.go.mini { width: 26px; height: 39px; border-width: 1px; }
+.go.mini .gsym { font-size: 13px; }
+.go.mini .gm, .go.mini .gk { display: none; }
+.go.mini.back::before { font-size: 12px; }
+
+.go.tiny { width: 24px; height: 36px; border-width: 1px; border-radius: 4px; }
+.go.tiny .gsym { font-size: 12px; }
+.go.tiny .gm { font-size: 7px; top: 0; left: 2px; }
+.go.tiny .gk { display: none; }
+
+/* 바닥·손패 상태 */
+.go.floor-card.matchable { box-shadow: 0 0 0 2px rgba(63,191,122,.8), 0 3px 8px rgba(0,0,0,.5); }
+.go.floor-card.bbeok {
+  box-shadow: 0 0 0 2px var(--red), 0 0 14px rgba(239,85,102,.7);
+}
+.go.hand-card.playable { cursor: pointer; }
+.go.hand-card.playable:hover { transform: translateY(-8px); box-shadow: 0 8px 16px rgba(0,0,0,.6); }
+.go.hand-card.can-match {
+  box-shadow: 0 0 0 2px var(--gold), 0 3px 10px rgba(0,0,0,.5);
+}
+.go.flip-card { animation: flipIn .35s ease-out; }
+@keyframes flipIn {
+  from { transform: rotateY(90deg) scale(.8); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+/* ---------- 특수 상황 표시 ---------- */
+.event-pop {
+  position: absolute; top: 42%; left: 50%;
+  transform: translate(-50%, -50%) scale(.6);
+  font-size: 46px; font-weight: 800; letter-spacing: 8px;
+  color: #fff2c9; opacity: 0; pointer-events: none; z-index: 20;
+  text-shadow: 0 0 10px var(--gold), 0 0 30px rgba(200,32,47,.9), 0 4px 12px rgba(0,0,0,.8);
+  transition: none;
+}
+.event-pop.show { animation: eventPop 1.1s ease-out; }
+@keyframes eventPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.5) rotate(-8deg); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.15) rotate(2deg); }
+  70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -60%) scale(.95); }
+}
+
+/* ---------- 결과 ---------- */
+body.kr .result-banner {
+  top: 45%;
+  background: linear-gradient(180deg, rgba(44,14,16,.96), rgba(14,5,7,.97));
+  border-color: var(--gold);
+  box-shadow: 0 18px 44px rgba(0,0,0,.7), 0 0 40px rgba(255,207,106,.45);
+}
+body.kr .result-banner.win {
+  box-shadow: 0 18px 44px rgba(0,0,0,.7), 0 0 48px rgba(255,207,106,.8), 0 0 110px rgba(200,32,47,.5);
+}
+body.kr .rtitle {
+  color: #fff0cf; letter-spacing: 10px;
+  text-shadow: 0 0 6px #fff, 0 0 18px var(--gold), 0 0 36px rgba(200,32,47,.8);
+}
+
+/* ---------- 조작부 ---------- */
+.go-controls { align-items: center; }
+.go-controls .myinfo { min-width: 0; flex: 1; }
+body.kr .act.call { background: linear-gradient(180deg, #3fbf7a, #14713f); color: #042412; }
+body.kr .act.raise { background: linear-gradient(180deg, #ffd97a, #b8801a); color: #33210a; }
+body.kr .act.start { background: linear-gradient(180deg, #e8563f, #9a1f16); }
+body.kr .act.rebuy { background: linear-gradient(180deg, #d98a3a, #8a4a12); display: none; }
+body.kr .act.fold { background: linear-gradient(180deg, #8a5a3a, #4a2a18); }
+
+body.kr .modal-inner {
+  background: linear-gradient(180deg, rgba(52,18,18,.98), rgba(18,7,8,.98));
+  border-color: rgba(255,207,106,.45);
+  box-shadow: 0 0 40px rgba(200,32,47,.4), 0 20px 60px rgba(0,0,0,.75);
+}
+body.kr .modal-inner h2 { color: #ffe9bd; text-shadow: 0 0 10px var(--gold); }
+body.kr .modal-inner h3 { color: var(--gold); }
+
+.go-ask { text-align: center; max-width: 420px; }
+.go-score { margin: 14px 0; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.go-note { width: 100%; font-size: 12px; color: #c9ab88; margin-top: 8px; line-height: 1.6; }
+.go-ask .stat-actions { justify-content: center; }
+.go-ask .act { min-width: 120px; }
+
+/* ---------- 좁은 화면 ---------- */
+@media (max-width: 1100px) {
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 52px 1fr auto 100px;
+    grid-template-areas: "top" "board" "ctrl" "log";
+  }
+  .logbox { max-height: 100px; }
+}
+@media (max-width: 780px) {
+  .go { width: 32px; height: 48px; }
+  .go .gsym { font-size: 16px; }
+  .go .gk { font-size: 7px; }
+  .go.tiny { width: 19px; height: 29px; }
+  .go.tiny .gsym { font-size: 10px; }
+  .go.mini { width: 20px; height: 30px; }
+  .cap-cards .go { margin-left: -11px; }
+  .board-wrap { padding: 6px 7px; gap: 5px; }
+  .event-pop { font-size: 32px; }
+  .hand-label { display: none; }
+}

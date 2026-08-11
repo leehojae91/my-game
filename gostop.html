@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>맞고 - 혼자 즐기기</title>
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/gostop.css" />
+</head>
+<body class="kr">
+
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand"><a class="home" href="index.html" title="게임 선택으로">❋</a> 맞고</div>
+    <div class="topinfo">
+      <span class="chip-badge">가진 돈 <b id="myChips">0</b></span>
+      <span class="blind-badge">한 점 <b id="unitInfo">-</b></span>
+      <span class="hand-badge"><b id="handNo">0</b> 판째</span>
+    </div>
+    <div class="topbtns">
+      <button id="btnSpeed" class="ghost">속도 보통</button>
+      <button id="btnLevel" class="ghost">난이도 중급</button>
+      <button id="btnStats" class="ghost">전적</button>
+      <button id="btnSound" class="ghost">🔊</button>
+      <button id="btnRules" class="ghost">규칙</button>
+      <button id="btnReset" class="ghost">초기화</button>
+    </div>
+  </header>
+
+  <main class="board-wrap" id="boardWrap">
+    <!-- 상대 -->
+    <section class="side opp" id="oppSide">
+      <div class="side-head">
+        <div class="who"><span class="avatar" id="oppAvatar">상</span><b id="oppName">상대</b>
+          <span class="money" id="oppChips">0</span></div>
+        <div class="score-line" id="oppScore"></div>
+      </div>
+      <div class="capture" id="oppCapture"></div>
+      <div class="opp-hand" id="oppHand"></div>
+    </section>
+
+    <!-- 바닥 -->
+    <section class="floor-area">
+      <div class="deck-box">
+        <div class="deck-pile" id="deckPile"></div>
+        <div class="deck-count"><b id="deckCount">0</b>장</div>
+      </div>
+      <div class="floor" id="floor"></div>
+      <div class="flip-slot" id="flipSlot"></div>
+    </section>
+
+    <!-- 나 -->
+    <section class="side me" id="meSide">
+      <div class="side-head">
+        <div class="who"><span class="avatar me-av">나</span><b>나</b>
+          <span class="money" id="meChips">0</span></div>
+        <div class="score-line" id="meScore"></div>
+      </div>
+      <div class="capture" id="meCapture"></div>
+    </section>
+
+    <section class="myhand-area">
+      <div class="hand-label" id="handLabel">내 패</div>
+      <div class="myhand" id="myHand"></div>
+    </section>
+
+    <div class="event-pop" id="eventPop"></div>
+    <div class="result-banner" id="resultBanner"></div>
+  </main>
+
+  <section class="controls go-controls">
+    <div class="myinfo">
+      <div class="hint" id="actionHint">새 판을 시작하세요</div>
+    </div>
+    <div class="actions">
+      <button id="btnGo" class="act raise">고</button>
+      <button id="btnStop" class="act call">스톱</button>
+      <button id="btnStart" class="act start">판 시작</button>
+      <button id="btnRebuy" class="act rebuy">다시 채우기</button>
+    </div>
+  </section>
+
+  <aside class="logbox">
+    <div class="logtitle">판 기록</div>
+    <ul id="logList"></ul>
+  </aside>
+</div>
+
+<div class="modal" id="levelModal">
+  <div class="modal-inner">
+    <h2>난이도 선택</h2>
+    <p class="stat-note">난이도를 바꾸면 한 점당 금액과 상대가 새로 정해지고 가진 돈이 초기화됩니다.</p>
+    <div class="level-list" id="levelList"></div>
+    <div class="stat-actions"><button class="act call" id="btnCloseLevel">닫기</button></div>
+  </div>
+</div>
+
+<div class="modal" id="statsModal">
+  <div class="modal-inner">
+    <h2>전적</h2>
+    <div class="stat-grid" id="statGrid"></div>
+    <div class="stat-actions">
+      <button class="act fold" id="btnStatsClear">전적 지우기</button>
+      <button class="act call" id="btnCloseStats">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="rulesModal">
+  <div class="modal-inner">
+    <h2>맞고 규칙</h2>
+    <ul>
+      <li><b>진행</b> — 각자 열 장을 받고 바닥에 여덟 장이 깔립니다. 손패에서 한 장을 내고, 더미에서 한 장을 뒤집습니다.</li>
+      <li><b>먹기</b> — 낸 카드와 같은 달이 바닥에 있으면 가져옵니다. 뒤집은 카드도 마찬가지입니다.</li>
+      <li><b>고와 스톱</b> — 삼 점을 넘기면 고를 불러 점수를 키우거나 스톱으로 끝낼 수 있습니다.</li>
+      <li>바닥에 같은 달이 둘 이상일 때는 값이 높은 쪽을 자동으로 가져옵니다.</li>
+    </ul>
+    <h3>점수</h3>
+    <ul>
+      <li><b>광</b> — 삼광 3점(비광이 끼면 2점) · 사광 4점 · 오광 15점</li>
+      <li><b>열끗</b> — 다섯 장부터 1점, 한 장 늘 때마다 1점. <b>고도리</b>(2 · 4 · 8월) 5점</li>
+      <li><b>띠</b> — 다섯 장부터 1점. <b>홍단</b>(1 · 2 · 3월) · <b>청단</b>(6 · 9 · 10월) · <b>초단</b>(4 · 5 · 7월) 각 3점</li>
+      <li><b>피</b> — 열 장부터 1점. 쌍피는 두 장으로 셉니다</li>
+    </ul>
+    <h3>특수 상황</h3>
+    <ul>
+      <li><b>쪽</b> — 낸 카드가 바닥에 없었는데 뒤집은 카드가 같은 달일 때. 상대 피 한 장을 가져옵니다.</li>
+      <li><b>뻑</b> — 먹으려던 자리에 뒤집은 카드까지 겹쳐 아무도 못 먹는 경우. 나중에 그 달을 내면 넉 장을 한 번에 가져옵니다.</li>
+      <li><b>따닥</b> — 같은 달 넉 장을 한 번에 가져오는 경우.</li>
+      <li><b>싹쓸이</b> — 바닥을 모두 비운 경우.</li>
+    </ul>
+    <h3>박</h3>
+    <ul>
+      <li><b>피박</b> 진 쪽 피가 다섯 장 이하 · <b>광박</b> 진 쪽에 광이 없을 때 · <b>멍박</b> 진 쪽에 열끗이 없을 때 — 각각 점수가 두 배</li>
+    </ul>
+    <button class="act call" id="btnCloseRules">닫기</button>
+  </div>
+</div>
+
+<div class="modal" id="goModal">
+  <div class="modal-inner go-ask">
+    <h2 id="goTitle">삼 점! 고 하시겠습니까?</h2>
+    <div class="go-score" id="goScoreDetail"></div>
+    <div class="stat-actions">
+      <button class="act raise" id="btnGoYes">고</button>
+      <button class="act call" id="btnGoNo">스톱</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/gostop-cards.js"></script>
+<script src="js/gostop-score.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/gostop-ai.js"></script>
+<script src="js/gostop-game.js"></script>
+<script src="js/gostop-ui.js"></script>
+</body>
+</html>
