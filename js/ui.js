@@ -57,6 +57,18 @@
 
   function cardKey(c) { return c.r + c.s; }
 
+  /* 카드 한 장 마크업 - 모서리 인덱스 + 가운데 큰 무늬 */
+  function cardHtml(c, extraCls, attrs) {
+    var r = Cards.RANK_LABEL[c.r];
+    var s = Cards.SUIT_SYMBOL[c.s];
+    return '<div class="card ' + (Cards.isRed(c) ? 'red' : 'black') +
+      (extraCls ? ' ' + extraCls : '') + '"' + (attrs || '') + '>' +
+      '<span class="ci">' + r + '<i>' + s + '</i></span>' +
+      '<span class="cpip">' + s + '</span>' +
+      '<span class="ci ci2">' + r + '<i>' + s + '</i></span>' +
+      '</div>';
+  }
+
   /* 누적 전적 */
   var stats = {
     hands: 0,      // 참가한 판
@@ -156,16 +168,14 @@
       var dealing = state.dealAnimHand !== Game.data.handNo;
       cardsHtml = '<div class="hole">' +
         p.hole.map(function (c, ci) {
-          var cls = 'card mini' + (state.highlight[cardKey(c)] ? ' hit' : '');
+          var cls = 'mini' + (state.highlight[cardKey(c)] ? ' hit' : '') +
+                    (dealing ? ' dealing' : '');
           var style = dealing
             ? ' style="animation-delay:' + ((p.id * 2 + ci) * 0.07) + 's"'
             : '';
-          if (dealing) cls += ' dealing';
           return faceUp
-            ? '<div class="' + cls + ' ' + (Cards.isRed(c) ? 'red' : 'black') + '"' + style + '>' +
-                '<span class="crank">' + Cards.RANK_LABEL[c.r] + '</span>' +
-                '<span class="csuit">' + Cards.SUIT_SYMBOL[c.s] + '</span></div>'
-            : '<div class="' + cls + ' back"' + style + '></div>';
+            ? cardHtml(c, cls, style)
+            : '<div class="card ' + cls + ' back"' + style + '></div>';
         }).join('') +
         '</div>';
     }
@@ -263,8 +273,10 @@
       el.className = 'card board-card fresh ' + (Cards.isRed(c) ? 'red' : 'black');
       el.style.animationDelay = ((j - state.boardCount) * 0.11) + 's';
       el.dataset.key = cardKey(c);
-      el.innerHTML = '<span class="crank">' + Cards.RANK_LABEL[c.r] + '</span>' +
-                     '<span class="csuit">' + Cards.SUIT_SYMBOL[c.s] + '</span>';
+      el.innerHTML =
+        '<span class="ci">' + Cards.RANK_LABEL[c.r] + '<i>' + Cards.SUIT_SYMBOL[c.s] + '</i></span>' +
+        '<span class="cpip">' + Cards.SUIT_SYMBOL[c.s] + '</span>' +
+        '<span class="ci ci2">' + Cards.RANK_LABEL[c.r] + '<i>' + Cards.SUIT_SYMBOL[c.s] + '</i></span>';
     }
     state.boardCount = G.board.length;
 

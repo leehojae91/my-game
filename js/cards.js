@@ -45,14 +45,11 @@
     var el = document.createElement('div');
     el.className = 'card' + (faceDown ? ' back' : (isRed(card) ? ' red' : ' black'));
     if (!faceDown) {
-      var rank = document.createElement('span');
-      rank.className = 'crank';
-      rank.textContent = RANK_LABEL[card.r];
-      var suit = document.createElement('span');
-      suit.className = 'csuit';
-      suit.textContent = SUIT_SYMBOL[card.s];
-      el.appendChild(rank);
-      el.appendChild(suit);
+      /* 모서리 인덱스 + 가운데 무늬 (화면 쪽 마크업과 같은 구조) */
+      el.innerHTML =
+        '<span class="ci">' + RANK_LABEL[card.r] + '<i>' + SUIT_SYMBOL[card.s] + '</i></span>' +
+        '<span class="cpip">' + SUIT_SYMBOL[card.s] + '</span>' +
+        '<span class="ci ci2">' + RANK_LABEL[card.r] + '<i>' + SUIT_SYMBOL[card.s] + '</i></span>';
     }
     return el;
   }
