@@ -20,8 +20,15 @@
     raiseTo: 0,
     legal: null,
     myTurn: false,
-    busy: false
+    busy: false,
+    boardHand: -1,
+    boardCount: 0,
+    potShown: 0,
+    potAnim: null,
+    highlight: {}
   };
+
+  function cardKey(c) { return c.r + c.s; }
 
   /* ---------- 소리 ---------- */
   var audioCtx = null;
@@ -86,8 +93,9 @@
       var faceUp = p.isHuman || p.showCards;
       cardsHtml = '<div class="hole">' +
         p.hole.map(function (c) {
+          var hi = state.highlight[cardKey(c)] ? ' hit' : '';
           return faceUp
-            ? '<div class="card mini ' + (Cards.isRed(c) ? 'red' : 'black') + '">' +
+            ? '<div class="card mini ' + (Cards.isRed(c) ? 'red' : 'black') + hi + '">' +
                 '<span class="crank">' + Cards.RANK_LABEL[c.r] + '</span>' +
                 '<span class="csuit">' + Cards.SUIT_SYMBOL[c.s] + '</span></div>'
             : '<div class="card mini back"></div>';
@@ -109,7 +117,7 @@
     el.innerHTML =
       '<div class="avatar">' + (p.isHuman ? '나' : p.name.charAt(0)) + '</div>' +
       '<div class="seat-body">' +
-        '<div class="seat-name">' + p.name +
+        '<div class="seat-name"><span>' + p.name + '</span>' +
           (p.persona ? '<span class="persona">' + p.persona.label + '</span>' : '') + '</div>' +
         '<div class="seat-chips">' + fmt(p.chips) + '</div>' +
         handInfo +
@@ -139,25 +147,62 @@
     });
   }
 
+  /* 팟 금액은 툭 바뀌지 않고 굴러가듯 올라간다 */
+  function animatePot(to) {
+    if (state.potAnim) cancelAnimationFrame(state.potAnim);
+    var from = state.potShown;
+    if (from === to) { $('potAmt').textContent = fmt(to); return; }
+    var start = null;
+    var dur = 420;
+    function step(ts) {
+      if (start === null) start = ts;
+      var t = Math.min(1, (ts - start) / dur);
+      var eased = 1 - Math.pow(1 - t, 3);
+      var v = Math.round(from + (to - from) * eased);
+      $('potAmt').textContent = fmt(v);
+      if (t < 1) state.potAnim = requestAnimationFrame(step);
+      else { state.potShown = to; state.potAnim = null; }
+    }
+    state.potAnim = requestAnimationFrame(step);
+    state.potShown = to;
+  }
+
+  /* 이미 깔린 카드는 그대로 두고 새로 나온 카드만 그린다 (깜빡임 · 재애니메이션 방지) */
   function renderBoard() {
     var G = Game.data;
     var box = $('community');
-    box.innerHTML = '';
-    for (var i = 0; i < 5; i++) {
-      if (G.board[i]) {
-        var c = G.board[i];
-        var d = document.createElement('div');
-        d.className = 'card board-card ' + (Cards.isRed(c) ? 'red' : 'black');
-        d.innerHTML = '<span class="crank">' + Cards.RANK_LABEL[c.r] + '</span>' +
-                      '<span class="csuit">' + Cards.SUIT_SYMBOL[c.s] + '</span>';
-        box.appendChild(d);
-      } else {
+    var rebuild = state.boardHand !== G.handNo || G.board.length < state.boardCount;
+
+    if (rebuild) {
+      box.innerHTML = '';
+      for (var i = 0; i < 5; i++) {
         var e = document.createElement('div');
         e.className = 'card board-card empty';
         box.appendChild(e);
       }
+      state.boardHand = G.handNo;
+      state.boardCount = 0;
     }
-    $('potAmt').textContent = fmt(G.pot);
+
+    for (var j = state.boardCount; j < G.board.length; j++) {
+      var c = G.board[j];
+      var el = box.children[j];
+      el.className = 'card board-card fresh ' + (Cards.isRed(c) ? 'red' : 'black');
+      el.style.animationDelay = ((j - state.boardCount) * 0.11) + 's';
+      el.dataset.key = cardKey(c);
+      el.innerHTML = '<span class="crank">' + Cards.RANK_LABEL[c.r] + '</span>' +
+                     '<span class="csuit">' + Cards.SUIT_SYMBOL[c.s] + '</span>';
+    }
+    state.boardCount = G.board.length;
+
+    /* 승리에 쓰인 카드 강조 */
+    for (var k = 0; k < box.children.length; k++) {
+      var ch = box.children[k];
+      var on = ch.dataset.key && state.highlight[ch.dataset.key];
+      ch.classList.toggle('hit', !!on);
+    }
+
+    animatePot(G.pot);
     $('streetLabel').textContent = G.street ? (Game.STREET_LABEL[G.street] || '') : '';
   }
 
@@ -249,7 +294,9 @@
         doHumanAct(L && L.canCheck ? 'check' : 'fold', 0);
         return;
       }
-      renderSeat(Game.human());
+      /* 좌석 전체를 다시 그리지 않고 막대만 줄인다 */
+      var bar = document.querySelector('#seat-0 .turnbar i');
+      if (bar) bar.style.width = (state.turnLeft / TURN_SECONDS * 100) + '%';
     }, 200);
   }
   function stopTurnTimer() {
@@ -262,13 +309,15 @@
     state.activeId = p.id;
     beep(880, 0.09, 0.05);
 
+    showActionButtons(true);
+    /* 체크와 콜은 동시에 뜨면 안 된다 - 표시 순서 주의 */
     $('btnCheck').style.display = legal.canCheck ? 'inline-block' : 'none';
     $('btnCall').style.display = legal.canCheck ? 'none' : 'inline-block';
     $('btnCall').textContent = '콜 ' + fmt(legal.toCall);
     $('btnRaise').textContent = Game.data.currentBet > 0 ? '레이즈' : '벳';
+    $('btnRaise').style.display = legal.canRaise ? 'inline-block' : 'none';
     $('btnStart').style.display = 'none';
     $('btnRebuy').style.display = 'none';
-    showActionButtons(true);
 
     var slider = $('raiseSlider');
     slider.min = legal.minRaiseTo;
@@ -320,19 +369,54 @@
     $('btnRebuy').style.display = 'none';
     $('resultBanner').className = 'result-banner';
     $('resultBanner').innerHTML = '';
+    state.highlight = {};
+    state.potShown = 0;
     state.busy = true;
     beep(660, 0.06, 0.04);
     Game.play();
   }
 
+  /* 획득 금액을 좌석 위로 띄운다 */
+  function floatWin(p, amount) {
+    var seat = $('seat-' + p.id);
+    var tag = document.createElement('div');
+    tag.className = 'float-win';
+    tag.textContent = '+' + fmt(amount);
+    seat.appendChild(tag);
+    setTimeout(function () { if (tag.parentNode) tag.parentNode.removeChild(tag); }, 1600);
+  }
+
   function onShowdown(results) {
-    var G = Game.data;
     var banner = $('resultBanner');
-    var me = Game.human();
-    var lines = results.map(function (r) {
+
+    /* 승리에 쓰인 5장을 표시해 왜 이겼는지 한눈에 보이게 한다 */
+    state.highlight = {};
+    results.forEach(function (r) {
+      if (r.best && r.best.best) {
+        r.best.best.forEach(function (c) { state.highlight[cardKey(c)] = true; });
+      }
+      r.winners.forEach(function (p) {
+        floatWin(p, Math.round(r.amount / r.winners.length));
+      });
+    });
+    render();
+
+    /* 승자가 같은 팟은 한 줄로 합쳐 보여 준다 */
+    var grouped = [];
+    results.forEach(function (r) {
       var who = r.winners.map(function (p) { return p.name; }).join(', ');
-      var hand = r.best ? ' · ' + Evaluator.label(r.best) : '';
-      return '<div class="rline">' + who + ' 승리 ' + fmt(r.amount) + hand + '</div>';
+      var hand = r.best ? Evaluator.label(r.best) : '';
+      var found = null;
+      for (var i = 0; i < grouped.length; i++) {
+        if (grouped[i].who === who && grouped[i].hand === hand) { found = grouped[i]; break; }
+      }
+      if (found) found.amount += r.amount;
+      else grouped.push({ who: who, hand: hand, amount: r.amount });
+    });
+
+    var lines = grouped.map(function (g) {
+      return '<div class="rline">' + g.who + ' 승리 <b>' + fmt(g.amount) + '</b>' +
+             (g.hand ? ' · ' + g.hand : '') + '</div>';
     }).join('');
 
     var iWon = results.some(function (r) {

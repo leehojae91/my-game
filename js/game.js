@@ -399,6 +399,12 @@
     var levels = contribs.filter(function (v, i, a) { return a.indexOf(v) === i; })
       .sort(function (a, b) { return a - b; });
 
+    function sameEligible(a, b) {
+      if (a.length !== b.length) return false;
+      for (var i = 0; i < a.length; i++) if (a.indexOf(b[i]) === -1) return false;
+      return true;
+    }
+
     var pots = [];
     var prev = 0;
     levels.forEach(function (lv) {
@@ -406,12 +412,19 @@
       G.players.forEach(function (p) {
         amount += Math.max(0, Math.min(p.committed, lv) - prev);
       });
+      prev = lv;
+      if (amount <= 0) return;
+
       var eligible = G.players.filter(function (p) {
         return p.dealt && !p.folded && p.committed >= lv;
       });
-      if (amount > 0 && eligible.length > 0) pots.push({ amount: amount, eligible: eligible });
-      else if (amount > 0 && pots.length) pots[pots.length - 1].amount += amount;
-      prev = lv;
+      var last = pots[pots.length - 1];
+      /* 받을 사람이 같은 구간은 굳이 나누지 않는다 (다이한 사람의 기여로 팟이 쪼개지는 것 방지) */
+      if (!eligible.length || (last && sameEligible(last.eligible, eligible))) {
+        if (last) { last.amount += amount; return; }
+        if (!eligible.length) return;
+      }
+      pots.push({ amount: amount, eligible: eligible });
     });
     return pots;
   }

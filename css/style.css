@@ -112,24 +112,47 @@ html, body {
     repeating-linear-gradient(45deg, #1f4d8f 0 6px, #17407a 6px 12px);
   border: 1px solid #0e2a52;
 }
-.card.mini { width: 38px; height: 54px; border-radius: 5px; }
-.card.mini .crank { font-size: 15px; }
-.card.mini .csuit { font-size: 13px; }
-.board-card { animation: dealin .28s ease-out; }
+.card.mini { width: 36px; height: 50px; border-radius: 5px; }
+.card.mini .crank { font-size: 14px; }
+.card.mini .csuit { font-size: 12px; }
+.board-card.fresh { animation: dealin .34s ease-out backwards; }
 .board-card.empty {
   background: rgba(255,255,255,.05); border: 1px dashed rgba(255,255,255,.16);
   box-shadow: none;
 }
 @keyframes dealin {
-  from { transform: translateY(-14px) scale(.86); opacity: 0; }
+  from { transform: translateY(-22px) rotateY(70deg) scale(.86); opacity: 0; }
   to { transform: none; opacity: 1; }
+}
+
+/* 승리에 쓰인 카드 강조 */
+.card.hit {
+  box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(232,196,106,.65);
+  transform: translateY(-4px);
+  transition: transform .2s, box-shadow .2s;
+}
+
+/* 획득 금액 떠오르기 */
+.float-win {
+  position: absolute; top: -6px; left: 50%;
+  transform: translateX(-50%);
+  color: #ffe9a8; font-weight: 800; font-size: 16px;
+  text-shadow: 0 2px 6px rgba(0,0,0,.8);
+  animation: floatup 1.6s ease-out forwards;
+  pointer-events: none; z-index: 6;
+}
+@keyframes floatup {
+  0% { opacity: 0; transform: translate(-50%, 6px) scale(.8); }
+  18% { opacity: 1; transform: translate(-50%, -8px) scale(1.1); }
+  70% { opacity: 1; transform: translate(-50%, -26px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -46px) scale(.95); }
 }
 
 /* ---------- 좌석 ---------- */
 .seat {
   position: absolute;
-  width: 190px;
-  display: flex; align-items: center; gap: 8px;
+  width: 216px;
+  display: flex; align-items: center; gap: 7px;
   background: rgba(8,16,26,.72);
   border: 1px solid #2c3d52; border-radius: 12px;
   padding: 6px 8px;
@@ -149,15 +172,23 @@ html, body {
   border: 2px solid #5d6d87;
 }
 .seat.me .avatar { background: linear-gradient(160deg, #2f6fb8, #1d4677); border-color: #6ea6e8; }
-.seat-body { flex: 1; min-width: 0; }
-.seat-name { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
-.persona {
-  font-size: 10px; background: #2b3849; color: #93a7bf;
-  border-radius: 4px; padding: 1px 4px;
+.seat-body { flex: 1 1 auto; min-width: 0; }
+.seat-name {
+  font-size: 12px; color: var(--muted);
+  display: flex; align-items: center; gap: 4px;
+  white-space: nowrap; overflow: hidden;
 }
-.seat-chips { font-size: 15px; font-weight: 700; color: var(--gold); }
-.seat-hand { font-size: 11px; color: var(--green); }
-.hole { display: flex; gap: 3px; }
+.seat-name > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+/* 성향 배지는 좌석 위쪽에 띄워 이름 자리를 뺏지 않게 한다 */
+.persona {
+  position: absolute; top: -9px; right: 10px;
+  font-size: 10px; background: #2b3849; color: #93a7bf;
+  border: 1px solid #3d4d63; border-radius: 4px; padding: 0 5px;
+  white-space: nowrap;
+}
+.seat-chips { font-size: 15px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.seat-hand { font-size: 11px; color: var(--green); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hole { display: flex; gap: 3px; flex: 0 0 auto; }
 .allin-tag {
   position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
   background: var(--red); color: #fff; font-size: 10px; font-weight: 700;
@@ -211,21 +242,23 @@ html, body {
   border: 2px solid #b9ad8c; box-shadow: 0 2px 6px rgba(0,0,0,.4);
   transition: all .3s;
 }
-.dealer-btn.d-0 { bottom: 16%; left: 62%; }
-.dealer-btn.d-1 { left: 27%; top: 40%; }
-.dealer-btn.d-2 { top: 16%; left: 38%; }
-.dealer-btn.d-3 { right: 27%; top: 60%; }
+.dealer-btn.d-0 { bottom: 15%; left: 60%; }
+.dealer-btn.d-1 { left: 22%; top: 58%; }
+.dealer-btn.d-2 { top: 15%; left: 38%; }
+.dealer-btn.d-3 { right: 22%; top: 40%; }
 
 /* 결과 배너 */
+/* 보드 카드를 가리지 않도록 테이블 위쪽에 띄운다 */
 .result-banner {
-  position: absolute; top: 50%; left: 50%;
+  position: absolute; top: 25%; left: 50%;
   transform: translate(-50%, -50%) scale(.9);
-  background: rgba(6,12,20,.92); border: 2px solid var(--gold);
-  border-radius: 14px; padding: 14px 28px; text-align: center;
+  background: rgba(6,12,20,.94); border: 2px solid var(--gold);
+  border-radius: 14px; padding: 12px 24px; text-align: center;
   opacity: 0; pointer-events: none; transition: all .25s;
   min-width: 240px; z-index: 5;
 }
 .result-banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.rline b { color: var(--gold); }
 .result-banner.win { border-color: var(--green); }
 .result-banner.lose { border-color: #5a6b80; }
 .rtitle { font-size: 24px; font-weight: 800; margin-bottom: 6px; color: var(--gold); }
