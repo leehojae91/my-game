@@ -170,14 +170,17 @@
   function badgeClass(a) {
     if (a === '다이') return 'b-fold';
     if (a === '체크') return 'b-check';
+    if (a === '선 베팅') return 'b-blind';
     if (a.indexOf('콜') >= 0) return 'b-call';
     return 'b-raise';
   }
 
   function renderBets() {
+    var showdown = G().streetIdx === 5;
     G().players.forEach(function (p) {
       var el = $('bet-' + p.id);
-      if (p.streetBet > 0 && p.dealt && !p.folded) {
+      /* 쇼다운에서는 이미 팟으로 넘어간 돈이라 앞에 남겨 두지 않는다 */
+      if (!showdown && p.streetBet > 0 && p.dealt && !p.folded) {
         el.style.display = 'flex';
         el.innerHTML = '<span class="stack">' + chipStackHtml(p.streetBet, 4) + '</span>' +
                        '<span class="bamt">' + fmt(p.streetBet) + '</span>';

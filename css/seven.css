@@ -51,6 +51,30 @@
 /* 세븐 포커는 공개 카드가 없어 가운데가 한산하다 - 팟을 조금 키운다 */
 .pot-box b { font-size: 20px; }
 
+/* 결과창은 비어 있는 한가운데에 (위쪽 좌석을 가리지 않게) */
+.result-banner { top: 50%; }
+
+/* 테이블 로고가 위쪽 좌석과 겹치지 않도록 아래로 */
+.felt-logo { top: 30%; font-size: 30px; opacity: .35; }
+
+/* 내 패에서 나만 보는 카드와 공개된 카드를 확실히 구분 */
+.myhand { position: relative; padding-top: 15px; }
+/* 카드 위에 라벨을 띄워야 해서 넘침을 허용한다 */
+.myhand .card { position: relative; overflow: visible; }
+.myhand .card.shown::before {
+  content: '공개'; position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 700; letter-spacing: 1px; white-space: nowrap;
+  color: #b6f0ff; text-shadow: 0 0 6px rgba(34,230,255,.9);
+}
+.myhand .card.hidden-card::before {
+  content: '히든'; position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 700; letter-spacing: 1px; white-space: nowrap;
+  color: #d9c6ff; text-shadow: 0 0 6px rgba(162,75,255,.9);
+}
+.myhand .card.hidden-card {
+  box-shadow: 0 0 0 2px rgba(162,75,255,.5), 0 4px 10px rgba(0,0,0,.5);
+}
+
 @media (max-width: 1100px) {
   .seat { width: 176px; }
 }

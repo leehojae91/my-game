@@ -413,6 +413,20 @@
     return best.p.id;
   }
 
+  /* 첫 라운드는 공개 카드가 가장 센 사람이 최소 베팅을 깔고 시작한다.
+     아무도 걸지 않아 체크만 도는 밋밋한 진행을 막는다 */
+  function postOpeningBet() {
+    var openerId = firstToAct();
+    var p = G.players[openerId];
+    var amt = Math.round(G.baseBet / 2);
+    commit(p, amt);
+    G.currentBet = p.streetBet;
+    G.minRaise = G.baseBet;
+    p.lastAction = '선 베팅';
+    log(p.name + ' 선 베팅 ' + fmt(amt), 'blind');
+    return openerId;
+  }
+
   function dealOne() {
     var i = G.button;
     for (var n = 0; n < G.players.length; n++) {
@@ -517,6 +531,7 @@
     beginHand();
     log('─── ' + G.handNo + '번째 판 시작 ───', 'sys');
     startStreet(0);
+    var openerId = postOpeningBet();
     update();
 
     var idx = 0;
@@ -550,7 +565,7 @@
     }
 
     return pace(600)
-      .then(function () { return bettingRound(firstToAct()); })
+      .then(function () { return bettingRound(nextIdx(openerId)); })
       .then(nextStreet)
       .then(function () {
         if (G.aborted) { G.inHand = false; return; }
