@@ -22,6 +22,7 @@
     smallBlind: 500,
     bigBlind: 1000,
     startChips: 100000,
+    speed: 1,
     inHand: false,
     aborted: false,
     hooks: {},
@@ -38,6 +39,10 @@
   }
   function wait(ms) {
     return new Promise(function (res) { setTimeout(res, ms); });
+  }
+  /* 진행 속도 설정을 반영한 대기 */
+  function pace(ms) {
+    return wait(Math.round(ms * (G.speed || 1)));
   }
 
   function setup(names) {
@@ -341,12 +346,12 @@
     }
     if (G.hooks.onActorChange) G.hooks.onActorChange(p);
     update();
-    return wait(500 + Math.random() * 700).then(function () {
+    return pace(500 + Math.random() * 700).then(function () {
       if (G.aborted) return;
       var d = askAI(p);
       applyAction(p, d.action, d.amount);
       update();
-      return wait(220);
+      return pace(220);
     });
   }
 
@@ -518,15 +523,15 @@
       var actionable = contenders().filter(function (p) { return !p.allIn && p.chips > 0; });
       if (actionable.length <= 1 && contenders().length > 1) {
         var needCall = actionable.length === 1 && actionable[0].streetBet < G.currentBet;
-        if (!needCall) return wait(700).then(nextStreet);
+        if (!needCall) return pace(700).then(nextStreet);
       }
 
-      return wait(400)
+      return pace(400)
         .then(function () { return bettingRound(firstToActPostflop()); })
         .then(nextStreet);
     }
 
-    return wait(600)
+    return pace(600)
       .then(function () { return bettingRound(firstToActPreflop(blinds)); })
       .then(nextStreet)
       .then(function () {
@@ -556,6 +561,7 @@
       setup(names);
     },
     setHooks: function (h) { G.hooks = h || {}; },
+    setSpeed: function (v) { G.speed = v; },
     play: playHand,
     legalFor: legalFor,
     human: human,

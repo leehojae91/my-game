@@ -21,6 +21,10 @@
     legal: null,
     myTurn: false,
     busy: false,
+    auto: false,
+    fast: false,
+    autoTimer: null,
+    chipsAtStart: 0,
     boardHand: -1,
     boardCount: 0,
     potShown: 0,
@@ -29,6 +33,16 @@
   };
 
   function cardKey(c) { return c.r + c.s; }
+
+  /* 누적 전적 */
+  var stats = {
+    hands: 0,      // 참가한 판
+    wins: 0,       // 이긴 판
+    showdowns: 0,  // 쇼다운까지 간 판
+    bestPot: 0,    // 한 판 최대 획득
+    net: 0,        // 누적 손익
+    bestHand: null // 최고 족보 {cat, text}
+  };
 
   /* ---------- 소리 ---------- */
   var audioCtx = null;
@@ -53,7 +67,10 @@
       var me = Game.human();
       localStorage.setItem(STORE_KEY, JSON.stringify({
         chips: me ? me.chips : START_CHIPS,
-        handNo: Game.data.handNo
+        handNo: Game.data.handNo,
+        stats: stats,
+        auto: state.auto,
+        fast: state.fast
       }));
     } catch (e) { /* 저장 실패 무시 */ }
   }
@@ -372,6 +389,8 @@
     state.highlight = {};
     state.potShown = 0;
     state.busy = true;
+    state.chipsAtStart = me.chips;
+    if (state.autoTimer) { clearTimeout(state.autoTimer); state.autoTimer = null; }
     beep(660, 0.06, 0.04);
     Game.play();
   }
@@ -428,19 +447,72 @@
     if (iWon) setTimeout(function () { beep(1318, 0.25, 0.05); }, 130);
   }
 
-  function onHandEnd() {
+  /* ---------- 전적 ---------- */
+  function collectStats(results) {
+    var me = Game.human();
+    var G = Game.data;
+
+    stats.hands++;
+    stats.net += me.chips - state.chipsAtStart;
+
+    var wentToShowdown = G.board.length === 5 && me.showCards;
+    if (wentToShowdown) stats.showdowns++;
+
+    var myWin = 0;
+    (results || []).forEach(function (r) {
+      if (r.winners.some(function (p) { return p.isHuman; })) {
+        myWin += Math.round(r.amount / r.winners.length);
+      }
+    });
+    if (myWin > 0) stats.wins++;
+    if (myWin > stats.bestPot) stats.bestPot = myWin;
+
+    if (!me.folded && G.board.length === 5) {
+      var ev = Evaluator.evaluate(me.hole.concat(G.board));
+      if (!stats.bestHand || ev.cat > stats.bestHand.cat) {
+        stats.bestHand = { cat: ev.cat, text: Evaluator.label(ev) };
+      }
+    }
+  }
+
+  function renderStats() {
+    var winRate = stats.hands ? Math.round(stats.wins / stats.hands * 100) : 0;
+    var sdRate = stats.hands ? Math.round(stats.showdowns / stats.hands * 100) : 0;
+    var netClass = stats.net > 0 ? 'up' : (stats.net < 0 ? 'down' : '');
+    var rows = [
+      ['참가한 판', fmt(stats.hands) + '판'],
+      ['이긴 판', fmt(stats.wins) + '판 (' + winRate + '%)'],
+      ['쇼다운까지 간 판', fmt(stats.showdowns) + '판 (' + sdRate + '%)'],
+      ['한 판 최대 획득', fmt(stats.bestPot)],
+      ['최고 족보', stats.bestHand ? stats.bestHand.text : '-'],
+      ['누적 손익', (stats.net >= 0 ? '+' : '') + fmt(stats.net), netClass]
+    ];
+    $('statGrid').innerHTML = rows.map(function (r) {
+      return '<div class="stat-k">' + r[0] + '</div>' +
+             '<div class="stat-v ' + (r[2] || '') + '">' + r[1] + '</div>';
+    }).join('');
+  }
+
+  function onHandEnd(results) {
     state.busy = false;
     state.activeId = -1;
+    collectStats(results);
     save();
     render();
     var me = Game.human();
     if (me.chips < Game.data.bigBlind) {
       $('btnRebuy').style.display = 'inline-block';
       $('actionHint').textContent = '칩이 다 떨어졌습니다. 리바이로 다시 시작하세요.';
-    } else {
-      $('btnStart').style.display = 'inline-block';
-      $('btnStart').textContent = '다음 판';
-      $('actionHint').textContent = '다음 판을 시작하세요';
+      return;
+    }
+    $('btnStart').style.display = 'inline-block';
+    $('btnStart').textContent = '다음 판';
+    $('actionHint').textContent = state.auto ? '잠시 후 다음 판이 시작됩니다' : '다음 판을 시작하세요';
+
+    if (state.auto) {
+      state.autoTimer = setTimeout(function () {
+        if (state.auto && !Game.data.inHand) startHand();
+      }, 2600 * (state.fast ? 0.5 : 1));
     }
   }
 
@@ -471,7 +543,13 @@
       var me = Game.human();
       me.chips = saved.chips > 0 ? saved.chips : START_CHIPS;
       Game.data.handNo = saved.handNo || 0;
+      if (saved.stats) {
+        for (var k in stats) if (saved.stats[k] !== undefined) stats[k] = saved.stats[k];
+      }
+      state.auto = !!saved.auto;
+      state.fast = !!saved.fast;
     }
+    Game.setSpeed(state.fast ? 0.45 : 1);
 
     Game.setHooks({
       onUpdate: render,
@@ -526,6 +604,38 @@
     $('btnSound').onclick = function () {
       state.soundOn = !state.soundOn;
       this.textContent = state.soundOn ? '🔊' : '🔇';
+    };
+
+    function paintToggles() {
+      var a = $('btnAuto'), s = $('btnSpeed');
+      a.textContent = state.auto ? '자동 진행 켬' : '자동 진행 끔';
+      a.classList.toggle('on', state.auto);
+      s.textContent = state.fast ? '속도 빠름' : '속도 보통';
+      s.classList.toggle('on', state.fast);
+    }
+    $('btnAuto').onclick = function () {
+      state.auto = !state.auto;
+      paintToggles();
+      save();
+      /* 판이 끝나 대기 중이었다면 바로 이어서 시작 */
+      if (state.auto && !Game.data.inHand && $('btnStart').style.display !== 'none') startHand();
+    };
+    $('btnSpeed').onclick = function () {
+      state.fast = !state.fast;
+      Game.setSpeed(state.fast ? 0.45 : 1);
+      paintToggles();
+      save();
+    };
+    paintToggles();
+
+    $('btnStats').onclick = function () { renderStats(); $('statsModal').classList.add('open'); };
+    $('btnCloseStats').onclick = function () { $('statsModal').classList.remove('open'); };
+    $('statsModal').onclick = function (e) { if (e.target === this) this.classList.remove('open'); };
+    $('btnStatsClear').onclick = function () {
+      stats.hands = 0; stats.wins = 0; stats.showdowns = 0;
+      stats.bestPot = 0; stats.net = 0; stats.bestHand = null;
+      save();
+      renderStats();
     };
     $('btnRules').onclick = function () { $('rulesModal').classList.add('open'); };
     $('btnCloseRules').onclick = function () { $('rulesModal').classList.remove('open'); };

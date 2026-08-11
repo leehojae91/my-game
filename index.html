@@ -19,6 +19,9 @@
       <span class="hand-badge"><b id="handNo">0</b> 판째</span>
     </div>
     <div class="topbtns">
+      <button id="btnAuto" class="ghost" title="판이 끝나면 자동으로 다음 판 시작">자동 진행 끔</button>
+      <button id="btnSpeed" class="ghost" title="상대가 생각하는 시간">속도 보통</button>
+      <button id="btnStats" class="ghost">전적</button>
       <button id="btnSound" class="ghost" title="소리 켜기/끄기">🔊</button>
       <button id="btnRules" class="ghost">규칙</button>
       <button id="btnReset" class="ghost">초기화</button>
@@ -91,6 +94,18 @@
     <div class="logtitle">진행 기록</div>
     <ul id="logList"></ul>
   </aside>
+</div>
+
+<!-- 전적 -->
+<div class="modal" id="statsModal">
+  <div class="modal-inner">
+    <h2>전적</h2>
+    <div class="stat-grid" id="statGrid"></div>
+    <div class="stat-actions">
+      <button class="act fold" id="btnStatsClear">전적 지우기</button>
+      <button class="act call" id="btnCloseStats">닫기</button>
+    </div>
+  </div>
 </div>
 
 <!-- 규칙 안내 -->

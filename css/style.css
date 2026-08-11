@@ -58,6 +58,20 @@ html, body {
   font-family: inherit;
 }
 .ghost:hover { background: #2c3a4d; color: var(--text); }
+.ghost.on {
+  background: #2a4a37; color: #9fe3ba; border-color: #3d6b4e;
+}
+
+/* 전적 창 */
+.stat-grid {
+  display: grid; grid-template-columns: auto 1fr; gap: 8px 18px;
+  font-size: 14px; align-items: baseline;
+}
+.stat-k { color: var(--muted); }
+.stat-v { color: var(--text); font-weight: 700; text-align: right; }
+.stat-v.up { color: var(--green); }
+.stat-v.down { color: #e2736a; }
+.stat-actions { display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end; }
 
 /* ---------- 테이블 ---------- */
 .table-wrap {
