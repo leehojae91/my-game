@@ -57,6 +57,40 @@
 
   function cardKey(c) { return c.r + c.s; }
 
+  /* 칩 액면가와 색 (큰 단위부터) */
+  var CHIP_TIERS = [
+    { v: 100000, c: '#22222c' },
+    { v: 25000, c: '#5b3a8e' },
+    { v: 5000, c: '#2a5fae' },
+    { v: 1000, c: '#b8342c' },
+    { v: 500, c: '#2f7a4a' },
+    { v: 100, c: '#dcd9d1' }
+  ];
+
+  /* 금액을 칩 더미 모양으로.
+     칩 하나만 덜렁 놓이면 초라하니, 세 개 이상 쌓이는 액면가부터 쪼갠다 */
+  function chipStackHtml(amount, maxChips) {
+    var startTier = CHIP_TIERS.length - 1;
+    for (var i = 0; i < CHIP_TIERS.length; i++) {
+      if (amount / CHIP_TIERS[i].v >= 3) { startTier = i; break; }
+    }
+
+    var left = amount;
+    var chips = [];
+    for (var j = startTier; j < CHIP_TIERS.length && chips.length < maxChips; j++) {
+      var t = CHIP_TIERS[j];
+      var n = Math.floor(left / t.v);
+      if (n <= 0) continue;
+      var take = Math.min(n, maxChips - chips.length);
+      for (var k = 0; k < take; k++) chips.push(t.c);
+      left -= t.v * take;
+    }
+    if (!chips.length && amount > 0) chips.push(CHIP_TIERS[CHIP_TIERS.length - 1].c);
+    return chips.map(function (c, idx) {
+      return '<i class="chip" style="--c:' + c + ';--i:' + idx + '"></i>';
+    }).join('');
+  }
+
   /* 카드 한 장 마크업 - 모서리 인덱스 + 가운데 큰 무늬 */
   function cardHtml(c, extraCls, attrs) {
     var r = Cards.RANK_LABEL[c.r];
@@ -223,7 +257,8 @@
       var el = $('bet-' + p.id);
       if (p.streetBet > 0 && p.dealt && !p.folded) {
         el.style.display = 'flex';
-        el.innerHTML = '<span class="chip-dot"></span>' + fmt(p.streetBet);
+        el.innerHTML = '<span class="stack">' + chipStackHtml(p.streetBet, 4) + '</span>' +
+                       '<span class="bamt">' + fmt(p.streetBet) + '</span>';
       } else {
         el.style.display = 'none';
       }
@@ -288,6 +323,12 @@
     }
 
     animatePot(G.pot);
+    /* 팟도 칩 더미로 보여 준다 */
+    var potKey = G.pot;
+    if (state.potChipKey !== potKey) {
+      state.potChipKey = potKey;
+      $('potChips').innerHTML = G.pot > 0 ? chipStackHtml(G.pot, 7) : '';
+    }
     $('streetLabel').textContent = G.street ? (Game.STREET_LABEL[G.street] || '') : '';
   }
 
@@ -619,6 +660,40 @@
     setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, life);
   }
 
+  /* 각자 앞의 베팅 칩이 팟으로 모이는 연출 */
+  function flyBetsToPot() {
+    var table = $('table');
+    var potBox = $('potChips');
+    if (!table || !potBox) return;
+    var tr = table.getBoundingClientRect();
+    var pr = potBox.getBoundingClientRect();
+
+    Game.data.players.forEach(function (p) {
+      var el = $('bet-' + p.id);
+      if (!el || el.style.display === 'none') return;
+      var r = el.getBoundingClientRect();
+      var node = el.cloneNode(true);
+      node.className = 'bet-chip flying';
+      node.style.display = 'flex';
+      node.style.left = Math.round(r.left - tr.left) + 'px';
+      node.style.top = Math.round(r.top - tr.top) + 'px';
+      node.style.right = 'auto';
+      node.style.bottom = 'auto';
+      node.style.transform = 'none';
+      table.appendChild(node);
+
+      var dx = (pr.left + pr.width / 2) - (r.left + r.width / 2);
+      var dy = (pr.top + pr.height / 2) - (r.top + r.height / 2);
+      requestAnimationFrame(function () {
+        node.style.transform = 'translate(' + Math.round(dx) + 'px,' + Math.round(dy) + 'px) scale(.65)';
+        node.style.opacity = '0';
+      });
+      setTimeout(function () {
+        if (node.parentNode) node.parentNode.removeChild(node);
+      }, 600);
+    });
+  }
+
   function floatWin(p, amount) {
     var tag = document.createElement('div');
     tag.className = 'fx float-win';
@@ -902,6 +977,7 @@
       onShowdown: onShowdown,
       onHandEnd: onHandEnd,
       onTalk: showTalk,
+      onCollect: flyBetsToPot,
       onAllIn: function () {
         var banner = $('resultBanner');
         banner.className = 'result-banner show allin';

@@ -551,6 +551,8 @@
       if (streetIdx >= STREETS.length) return Promise.resolve();
 
       var st = STREETS[streetIdx];
+      /* 판돈이 팟으로 모이는 연출을 먼저 보여 준 뒤 라운드를 넘긴다 */
+      if (G.hooks.onCollect) G.hooks.onCollect();
       startStreet(st);
 
       /* 더 이상 액션할 사람이 없으면 카드를 공개하고 천천히 깐다 */
