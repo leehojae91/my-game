@@ -702,6 +702,36 @@
     });
   }
 
+  /* 금화가 쏟아지는 연출 */
+  function burstCoins(count) {
+    var layer = document.body;
+    for (var i = 0; i < count; i++) {
+      var el = document.createElement('div');
+      el.className = 'coin';
+      el.style.left = (Math.random() * 100) + '%';
+      el.style.animationDelay = (Math.random() * 0.55).toFixed(2) + 's';
+      el.style.animationDuration = (1.3 + Math.random() * 1.3).toFixed(2) + 's';
+      el.style.setProperty('--sz', (11 + Math.random() * 12).toFixed(0) + 'px');
+      layer.appendChild(el);
+      (function (node) {
+        setTimeout(function () {
+          if (node.parentNode) node.parentNode.removeChild(node);
+        }, 2800);
+      })(el);
+    }
+  }
+
+  /* 화면 전체가 한 번 번쩍인다 */
+  function flashScreen(color) {
+    var el = document.createElement('div');
+    el.className = 'screen-flash';
+    el.style.setProperty('--fc', color || 'rgba(255,61,154,.4)');
+    document.body.appendChild(el);
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 700);
+  }
+
   /* 팟이 승자에게 넘어가는 연출 */
   function flyPotToWinner(p, amount) {
     var table = $('table');
@@ -777,10 +807,26 @@
     var iWon = results.some(function (r) {
       return r.winners.some(function (p) { return p.isHuman; });
     });
+    var myGain = 0;
+    results.forEach(function (r) {
+      if (r.winners.some(function (x) { return x.isHuman; })) {
+        myGain += Math.round(r.amount / r.winners.length);
+      }
+    });
+
     banner.className = 'result-banner show ' + (iWon ? 'win' : 'lose');
-    banner.innerHTML = '<div class="rtitle">' + (iWon ? '승리' : '패배') + '</div>' + lines;
+    banner.innerHTML =
+      '<div class="rtitle">' + (iWon ? '<span class="crown">♛</span> 승리' : '패배') + '</div>' + lines;
+
     beep(iWon ? 1046 : 300, 0.25, 0.06);
-    if (iWon) setTimeout(function () { beep(1318, 0.25, 0.05); }, 130);
+    if (iWon) {
+      setTimeout(function () { beep(1318, 0.25, 0.05); }, 130);
+      setTimeout(function () { beep(1568, 0.3, 0.05); }, 260);
+      /* 크게 딸수록 금화가 많이 쏟아진다 */
+      var big = myGain >= LEVELS[state.level].chips * 0.4;
+      burstCoins(big ? 46 : 24);
+      flashScreen('rgba(255,210,90,.35)');
+    }
   }
 
   /* 창을 열면 자동 진행을 멈추고, 닫으면 이어서 진행한다 */
@@ -1024,6 +1070,7 @@
         banner.innerHTML = '<div class="rtitle">올인 대결</div>' +
                            '<div class="rline">남은 카드로 승부가 갈립니다</div>';
         beep(520, 0.18, 0.06);
+        flashScreen('rgba(255,61,154,.45)');
         setTimeout(function () {
           if (banner.classList.contains('allin')) banner.className = 'result-banner';
         }, 1800);
