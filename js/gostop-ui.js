@@ -157,12 +157,22 @@
     }
   }
 
-  /* 뒤집힌 카드를 잠깐 보여 준다 */
-  function showFlip(card) {
+  /* 방금 낸 카드와 뒤집은 카드를 잠깐 보여 준다 */
+  function showFlip(played, flipped) {
     var slot = $('flipSlot');
-    if (!card) { slot.innerHTML = ''; return; }
-    slot.innerHTML = '<div class="flip-label">뒤집기</div>' + GoCards.cardHtml(card, 'flip-card');
-    setTimeout(function () { slot.innerHTML = ''; }, 1400);
+    if (!played && !flipped) { slot.innerHTML = ''; return; }
+    var html = '';
+    if (played) {
+      html += '<div class="flip-one"><div class="flip-label">낸 패</div>' +
+              GoCards.cardHtml(played, 'flip-card') + '</div>';
+    }
+    if (flipped) {
+      html += '<div class="flip-one"><div class="flip-label">뒤집기</div>' +
+              GoCards.cardHtml(flipped, 'flip-card') + '</div>';
+    }
+    slot.innerHTML = html;
+    if (slot._timer) clearTimeout(slot._timer);
+    slot._timer = setTimeout(function () { slot.innerHTML = ''; }, 1500);
   }
 
   function popEvent(name) {
@@ -363,6 +373,7 @@
       onHumanTurn: onHumanTurn,
       onGoChoice: onGoChoice,
       onHandEnd: onHandEnd,
+      onPlay: function (p, res) { showFlip(res.card, res.flip); },
       onEvent: function (name) {
         if (['쪽', '뻑', '따닥', '싹쓸이', '뻑 먹기', '고'].indexOf(name) >= 0) popEvent(name);
       },

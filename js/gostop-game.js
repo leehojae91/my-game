@@ -201,6 +201,10 @@
       if (stealEvents.indexOf(e) >= 0 && !stole) { stole = stealPi(p); }
     });
 
+    log(p.name + ' 냄: ' + GoCards.label(card) +
+        (flip ? ' · 뒤집기: ' + GoCards.label(flip) : '') +
+        (gained.length ? ' → ' + gained.length + '장 획득' : ''), 'play');
+
     if (events.length) {
       log(p.name + ' — ' + events.join(' · '), 'event');
       events.forEach(function (e) { event(e, p); });
@@ -263,8 +267,10 @@
       return choose.then(function (card) {
         if (G.aborted || !card) return;
         var res = playCard(p, card);
+        /* 뒤집은 카드를 화면에 보여 줄 수 있도록 알린다 */
+        if (G.hooks.onPlay) G.hooks.onPlay(p, res);
         update();
-        return pace(700).then(function () {
+        return pace(900).then(function () {
           var sc = scoreOf(p);
           p.lastScore = sc.total;
           /* 세 점을 넘겼고 지난번 고보다 점수가 올랐으면 물어본다 */

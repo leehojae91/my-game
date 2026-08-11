@@ -137,9 +137,13 @@ body.kr .logtitle { color: #e8c9a0; border-bottom-color: rgba(255,207,106,.28); 
 .deck-count b { color: var(--gold); font-size: 13px; }
 .flip-slot {
   position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  display: flex; gap: 10px;
 }
-.flip-label { font-size: 10px; color: #ffd0a0; }
+.flip-one { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.flip-label {
+  font-size: 10px; color: #ffd0a0; white-space: nowrap;
+  text-shadow: 0 0 6px rgba(255,150,90,.8);
+}
 
 /* ---------- 내 손패 ---------- */
 .myhand-area { display: flex; align-items: center; gap: 10px; }
