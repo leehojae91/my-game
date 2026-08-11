@@ -42,6 +42,8 @@
     fast: false,
     hint: true,
     level: 'normal',
+    preAction: null,     // 내 차례가 오면 자동으로 취할 액션
+    sliderOpen: false,
     autoTimer: null,
     autoPaused: false,
     chipsAtStart: 0,
@@ -92,7 +94,8 @@
         auto: state.auto,
         fast: state.fast,
         hint: state.hint,
-        level: state.level
+        level: state.level,
+        sliderOpen: state.sliderOpen
       }));
     } catch (e) { /* 저장 실패 무시 */ }
   }
@@ -350,6 +353,7 @@
     $('blindInfo').textContent = fmt(G.smallBlind) + ' / ' + fmt(G.bigBlind);
     $('handNo').textContent = G.handNo;
     if (G.handNo && me && me.hole.length) state.dealAnimHand = G.handNo;
+    updatePreActions();
   }
 
   /* ---------- 베팅 조작 ---------- */
@@ -378,7 +382,7 @@
 
   /* 프리셋 버튼에 실제 금액을 찍고, 슬라이더 범위를 맞춘다 */
   function updateBetPanel(L) {
-    Array.prototype.forEach.call(document.querySelectorAll('.preset'), function (b) {
+    Array.prototype.forEach.call(document.querySelectorAll('.preset[data-preset]'), function (b) {
       var target = presetTarget(b.dataset.preset, L);
       var amtEl = b.querySelector('.pamt');
       if (target === null) {
@@ -404,12 +408,31 @@
     $('btnRaise').textContent = raiseVerb() + ' ' + fmt(state.raiseTo);
   }
 
+  /* 내 차례가 아닐 때 다음 액션을 미리 정해 두는 버튼 */
+  function updatePreActions() {
+    var G = Game.data;
+    var me = Game.human();
+    var box = $('preActions');
+    var show = G.inHand && me && me.dealt && !me.folded && !me.allIn && !state.myTurn;
+    box.style.display = show ? 'flex' : 'none';
+    Array.prototype.forEach.call(box.querySelectorAll('.pre'), function (b) {
+      b.classList.toggle('on', state.preAction === b.dataset.pre);
+    });
+  }
+
+  function clearPreAction() {
+    state.preAction = null;
+    updatePreActions();
+  }
+
   /* ---------- 사람 차례 ---------- */
   function showActionButtons(show) {
     ['btnFold', 'btnCheck', 'btnCall', 'btnRaise'].forEach(function (id) {
       $(id).style.display = show ? 'inline-block' : 'none';
     });
-    $('raisePanel').style.display = show && state.legal && state.legal.canRaise ? 'flex' : 'none';
+    var canRaise = show && state.legal && state.legal.canRaise;
+    $('raisePanel').style.display = canRaise ? 'flex' : 'none';
+    $('sliderRow').style.display = canRaise && state.sliderOpen ? 'flex' : 'none';
   }
 
   function startTurnTimer() {
@@ -436,6 +459,21 @@
     state.myTurn = true;
     state.legal = legal;
     state.activeId = p.id;
+
+    /* 미리 정해 둔 액션이 있으면 그대로 실행한다 */
+    if (state.preAction) {
+      var pa = state.preAction;
+      state.preAction = null;
+      updatePreActions();
+      render();
+      setTimeout(function () {
+        if (!Game.isWaitingHuman()) return;
+        if (pa === 'call') doHumanAct(legal.canCheck ? 'check' : 'call', 0);
+        else doHumanAct(legal.canCheck ? 'check' : 'fold', 0);
+      }, 340);
+      return;
+    }
+
     beep(880, 0.09, 0.05);
 
     showActionButtons(true);
@@ -460,6 +498,7 @@
   function doHumanAct(action, amount) {
     if (!Game.isWaitingHuman()) return;
     stopTurnTimer();
+    state.preAction = null;
     state.myTurn = false;
     state.activeId = -1;
     showActionButtons(false);
@@ -497,6 +536,7 @@
     state.potShown = 0;
     state.busy = true;
     state.chipsAtStart = me.chips;
+    state.preAction = null;
     if (state.autoTimer) { clearTimeout(state.autoTimer); state.autoTimer = null; }
     beep(660, 0.06, 0.04);
     Game.play();
@@ -535,7 +575,10 @@
     if (!table || !seat) return;
     var tr = table.getBoundingClientRect();
     var sr = seat.getBoundingClientRect();
-    node.style.left = Math.round(sr.left - tr.left + sr.width / 2) + 'px';
+    var x = sr.left - tr.left + sr.width / 2;
+    /* 좁은 화면에서 테이블 밖으로 밀려나지 않게 가둔다 */
+    x = Math.max(60, Math.min(tr.width - 60, x));
+    node.style.left = Math.round(x) + 'px';
     node.style.top = Math.round(sr.top - tr.top + (offsetY || 0)) + 'px';
     table.appendChild(node);
     setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, life);
@@ -811,7 +854,9 @@
       state.auto = !!saved.auto;
       state.fast = !!saved.fast;
       if (saved.hint !== undefined) state.hint = !!saved.hint;
+      state.sliderOpen = !!saved.sliderOpen;
     }
+    $('btnTune').classList.toggle('on', state.sliderOpen);
     Game.setSpeed(state.fast ? 0.45 : 1);
     renderLevelList();
 
@@ -842,6 +887,20 @@
     $('btnRaise').onclick = function () { doHumanAct('raise', state.raiseTo); };
     $('btnStart').onclick = startHand;
 
+    Array.prototype.forEach.call(document.querySelectorAll('.pre'), function (b) {
+      b.onclick = function () {
+        state.preAction = (state.preAction === this.dataset.pre) ? null : this.dataset.pre;
+        updatePreActions();
+      };
+    });
+
+    $('btnTune').onclick = function () {
+      state.sliderOpen = !state.sliderOpen;
+      this.classList.toggle('on', state.sliderOpen);
+      $('sliderRow').style.display = state.sliderOpen ? 'flex' : 'none';
+      save();
+    };
+
     $('btnRebuy').onclick = function () {
       var refill = LEVELS[state.level].chips;
       Game.human().chips = refill;
@@ -859,7 +918,7 @@
     };
 
     /* 프리셋은 누르는 즉시 베팅한다 (한 번 더 확인하는 단계 없음) */
-    Array.prototype.forEach.call(document.querySelectorAll('.preset'), function (b) {
+    Array.prototype.forEach.call(document.querySelectorAll('.preset[data-preset]'), function (b) {
       b.onclick = function () {
         if (this.disabled) return;
         var target = presetTarget(this.dataset.preset, state.legal);

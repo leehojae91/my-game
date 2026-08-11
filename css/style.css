@@ -340,7 +340,7 @@ html, body {
   grid-area: ctrl;
   background: linear-gradient(180deg, #172130, #111823);
   border: 1px solid #28364a; border-radius: 12px;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: flex-end; justify-content: space-between;
   padding: 10px 16px; gap: 14px;
 }
 .myinfo { min-width: 260px; }
@@ -376,8 +376,13 @@ html, body {
   outline: 2px solid var(--gold); outline-offset: 2px;
 }
 
+/* 베팅 관련 조작은 한 덩어리로 쌓아 시선 이동을 줄인다 */
+.bet-area {
+  display: flex; flex-direction: column; gap: 8px; align-items: stretch;
+  min-width: 460px;
+}
 .raise-panel {
-  display: none; flex-direction: column; gap: 8px; flex: 1; max-width: 440px;
+  display: none; flex-direction: column; gap: 8px;
 }
 .presets { display: flex; gap: 6px; }
 /* 누르면 바로 베팅되는 버튼이라 금액을 함께 크게 보여 준다 */
@@ -395,7 +400,24 @@ html, body {
 .preset.is-allin { background: #3a2620; border-color: #8d4b3b; }
 .preset.is-allin .pamt { color: #ffb4a2; }
 
-.slider-row { display: flex; align-items: center; gap: 10px; }
+.preset.tune { flex: 0 0 auto; min-width: 56px; background: #1e2a3a; }
+.preset.tune.on { background: #2a4a37; border-color: #3d6b4e; color: #9fe3ba; }
+.preset.tune .pamt { color: #8fa0b5; }
+
+/* 미리 정하기 */
+.pre-actions { display: none; align-items: center; gap: 6px; }
+.pre-label { font-size: 11px; color: #7d8fa6; margin-right: 2px; }
+.pre {
+  background: #1e2a3a; color: #a9bbd0; border: 1px solid #33455c;
+  border-radius: 7px; padding: 6px 12px; font-size: 12px; cursor: pointer;
+  font-family: inherit; white-space: nowrap;
+}
+.pre:hover { background: #26344a; color: #fff; }
+.pre.on {
+  background: #2a4a37; border-color: #4d8461; color: #b6f0cd; font-weight: 700;
+}
+
+.slider-row { display: none; align-items: center; gap: 10px; }
 #raiseSlider { flex: 1; accent-color: var(--gold); }
 #raiseSlider:disabled { opacity: .35; }
 .raise-amt { font-size: 11px; color: var(--muted); white-space: nowrap; }
@@ -403,7 +425,7 @@ html, body {
 
 .actions { display: flex; gap: 8px; }
 .act {
-  min-width: 96px; padding: 12px 14px; border-radius: 8px; border: none;
+  flex: 1; min-width: 96px; padding: 12px 14px; border-radius: 8px; border: none;
   font-size: 15px; font-weight: 700; cursor: pointer; color: #fff;
   font-family: inherit; transition: transform .08s, filter .15s;
 }
@@ -476,8 +498,11 @@ html, body {
   .brand span:not(.logo) { display: none; }
   .brand { font-size: 0; }
   .brand .logo { font-size: 20px; }
-  .topinfo { gap: 8px; font-size: 11px; min-width: 0; overflow: hidden; }
-  .blind-badge { display: none; }
+  .topinfo { gap: 8px; font-size: 11px; min-width: 0; }
+  .chip-badge { flex: 0 0 auto; }
+  .blind-badge, .hand-badge { display: none; }
+  /* 좁은 화면에서는 자주 쓰지 않는 버튼을 접는다 */
+  #btnSound, #btnReset { display: none; }
   .ghost { padding: 4px 6px; font-size: 11px; }
   .felt-logo { display: none; }
   .table { border-width: 6px; border-radius: 170px / 140px; }
@@ -512,10 +537,13 @@ html, body {
 
   .controls { flex-direction: column; align-items: stretch; gap: 6px; padding: 8px 10px; }
   .myinfo { min-width: 0; }
-  .raise-panel { max-width: none; }
+  .bet-area { min-width: 0; }
+  .pre-label { display: none; }
+  .pre { flex: 1; text-align: center; padding: 6px 4px; }
   .preset { padding: 6px 1px; gap: 1px; }
   .preset b { font-size: 11px; }
   .preset .pamt { font-size: 10px; }
+  .preset.tune { min-width: 44px; }
   .actions { justify-content: stretch; gap: 6px; }
   .act { min-width: 0; flex: 1; font-size: 13px; padding: 10px 4px; }
   .logbox { max-height: 92px; }

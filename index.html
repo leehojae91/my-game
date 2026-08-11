@@ -71,27 +71,36 @@
       <div class="keys">단축키 <b>F</b> 다이 · <b>C</b> 체크·콜 · <b>R</b> 레이즈 · <b>Enter</b> 다음 판</div>
     </div>
 
-    <div class="raise-panel" id="raisePanel">
-      <div class="presets">
-        <button class="preset" data-preset="min"><b>최소</b><span class="pamt">-</span></button>
-        <button class="preset" data-preset="half"><b>1/2 팟</b><span class="pamt">-</span></button>
-        <button class="preset" data-preset="threeq"><b>3/4 팟</b><span class="pamt">-</span></button>
-        <button class="preset" data-preset="pot"><b>팟</b><span class="pamt">-</span></button>
-        <button class="preset allin" data-preset="allin"><b>올인</b><span class="pamt">-</span></button>
+    <div class="bet-area">
+      <div class="raise-panel" id="raisePanel">
+        <div class="presets">
+          <button class="preset" data-preset="min"><b>최소</b><span class="pamt">-</span></button>
+          <button class="preset" data-preset="half"><b>1/2 팟</b><span class="pamt">-</span></button>
+          <button class="preset" data-preset="threeq"><b>3/4 팟</b><span class="pamt">-</span></button>
+          <button class="preset" data-preset="pot"><b>팟</b><span class="pamt">-</span></button>
+          <button class="preset allin" data-preset="allin"><b>올인</b><span class="pamt">-</span></button>
+          <button class="preset tune" id="btnTune"><b>직접</b><span class="pamt">조절</span></button>
+        </div>
+        <div class="slider-row" id="sliderRow">
+          <input type="range" id="raiseSlider" min="0" max="100" value="0" />
+          <span class="raise-amt">베팅액 <b id="raiseAmt">0</b></span>
+        </div>
       </div>
-      <div class="slider-row">
-        <input type="range" id="raiseSlider" min="0" max="100" value="0" />
-        <span class="raise-amt">직접 조절 <b id="raiseAmt">0</b></span>
-      </div>
-    </div>
 
-    <div class="actions">
-      <button id="btnFold" class="act fold">다이</button>
-      <button id="btnCheck" class="act check">체크</button>
-      <button id="btnCall" class="act call">콜</button>
-      <button id="btnRaise" class="act raise">레이즈</button>
-      <button id="btnStart" class="act start">게임 시작</button>
-      <button id="btnRebuy" class="act rebuy">리바이</button>
+      <div class="pre-actions" id="preActions">
+        <span class="pre-label">미리 정하기</span>
+        <button class="pre" data-pre="checkfold">체크 · 다이</button>
+        <button class="pre" data-pre="call">콜</button>
+      </div>
+
+      <div class="actions">
+        <button id="btnFold" class="act fold">다이</button>
+        <button id="btnCheck" class="act check">체크</button>
+        <button id="btnCall" class="act call">콜</button>
+        <button id="btnRaise" class="act raise">레이즈</button>
+        <button id="btnStart" class="act start">게임 시작</button>
+        <button id="btnRebuy" class="act rebuy">리바이</button>
+      </div>
     </div>
   </section>
 
