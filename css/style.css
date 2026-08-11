@@ -302,7 +302,11 @@ body::before {
 }
 .seat.out { opacity: .3; }
 .seat.folded { opacity: .45; filter: grayscale(.7); }
-.seat.active { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(232,196,106,.35), 0 0 18px rgba(232,196,106,.25); }
+.seat.active { border-color: var(--gold); animation: seatPulse 1.5s ease-in-out infinite; }
+@keyframes seatPulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(232,196,106,.3), 0 0 16px rgba(232,196,106,.2); }
+  50% { box-shadow: 0 0 0 3px rgba(232,196,106,.6), 0 0 28px rgba(232,196,106,.45); }
+}
 .seat.winner { border-color: var(--green); box-shadow: 0 0 0 2px rgba(47,181,106,.4), 0 0 22px rgba(47,181,106,.35); }
 .seat.me {
   background: linear-gradient(180deg, rgba(22,42,68,.96), rgba(10,20,34,.96));
@@ -310,13 +314,23 @@ body::before {
 }
 
 .avatar {
-  width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%;
-  background: linear-gradient(160deg, #46536b, #2b3547);
+  position: relative;
+  width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255,255,255,.28), transparent 55%),
+    linear-gradient(160deg, hsl(var(--h, 210) 42% 46%), hsl(var(--h, 210) 48% 24%));
   display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 15px; color: #dbe6f5;
-  border: 2px solid #5d6d87;
+  font-weight: 700; font-size: 15px; color: #f0f5ff;
+  border: 2px solid hsl(var(--h, 210) 45% 58%);
+  box-shadow: inset 0 -3px 6px rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.45);
+  text-shadow: 0 1px 2px rgba(0,0,0,.5);
 }
-.seat.me .avatar { background: linear-gradient(160deg, #2f6fb8, #1d4677); border-color: #6ea6e8; }
+/* 아바타 안쪽 옅은 무늬 */
+.avatar::after {
+  content: attr(data-mark);
+  position: absolute; right: 3px; bottom: 1px;
+  font-size: 12px; color: rgba(255,255,255,.28);
+}
 .seat-body { flex: 1 1 auto; min-width: 0; }
 .seat-name {
   font-size: 12px; color: var(--muted);
@@ -331,10 +345,19 @@ body::before {
   border: 1px solid #3d4d63; border-radius: 4px; padding: 0 5px;
   white-space: nowrap;
 }
-.seat-chips { font-size: 15px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.seat-chips {
+  font-size: 16px; font-weight: 800; color: var(--gold);
+  white-space: nowrap; letter-spacing: -.2px;
+  text-shadow: 0 1px 2px rgba(0,0,0,.6);
+}
 .seat-hand { font-size: 11px; color: var(--green); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .seat-eq { font-size: 11px; color: #ffd777; font-weight: 700; white-space: nowrap; }
-.hole { display: flex; gap: 3px; flex: 0 0 auto; }
+/* 카드는 좌석 위로 살짝 걸치고 부채꼴로 벌린다 */
+.hole { display: flex; flex: 0 0 auto; transform: translateY(-7px); }
+.hole .card { box-shadow: 0 5px 12px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.9); }
+.hole .card:first-child { transform: rotate(-6deg); }
+.hole .card:last-child { transform: rotate(6deg); margin-left: -5px; }
+.hole .card.hit { transform: translateY(-6px) scale(1.07); }
 .allin-tag {
   position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
   background: var(--red); color: #fff; font-size: 10px; font-weight: 700;
@@ -361,8 +384,10 @@ body::before {
 /* 좌석 위치 */
 #seat-0 { bottom: -14px; left: 50%; transform: translateX(-50%); }
 #seat-1 { left: -22px; top: 50%; transform: translateY(-50%); }
-#seat-2 { top: -14px; left: 50%; transform: translateX(-50%); }
+#seat-2 { top: -6px; left: 50%; transform: translateX(-50%); }
 #seat-3 { right: -22px; top: 50%; transform: translateY(-50%); }
+/* 맨 위 좌석은 카드를 아래로 걸쳐야 테이블 밖으로 나가지 않는다 */
+#seat-2 .hole { transform: translateY(8px); }
 
 /* 포커 칩 - 테두리 줄무늬와 안쪽 원 */
 .chip {
@@ -618,8 +643,9 @@ body::before {
 
   /* 좁은 화면에서는 상대 셋을 위쪽 반원에 모아 보드와 겹치지 않게 한다 */
   #seat-1 { left: 2px; top: 20%; transform: none; }
-  #seat-2 { top: -8px; left: 50%; transform: translateX(-50%); }
+  #seat-2 { top: 0; left: 50%; transform: translateX(-50%); }
   #seat-3 { right: 2px; top: 20%; transform: none; }
+  #seat-2 .hole { transform: translateY(6px); }
   #seat-0 { bottom: -10px; }
   #bet-1 { left: 16%; top: 40%; transform: none; }
   #bet-2 { top: 21%; }

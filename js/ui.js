@@ -231,8 +231,14 @@
       ? '<div class="turnbar"><i style="width:' + (state.turnLeft / TURN_SECONDS * 100) + '%"></i></div>'
       : '';
 
+    /* 좌석마다 색을 달리해 한눈에 구분되게 한다 */
+    var HUES = [208, 8, 145, 272];
+    var MARKS = ['♠', '♥', '♦', '♣'];
+
     el.innerHTML =
-      '<div class="avatar">' + (p.isHuman ? '나' : p.name.charAt(0)) + '</div>' +
+      '<div class="avatar" style="--h:' + HUES[p.id % HUES.length] + '"' +
+        ' data-mark="' + MARKS[p.id % MARKS.length] + '">' +
+        (p.isHuman ? '나' : p.name.charAt(0)) + '</div>' +
       '<div class="seat-body">' +
         '<div class="seat-name"><span>' + p.name + '</span>' +
           (p.persona ? '<span class="persona">' + p.persona.label + '</span>' : '') + '</div>' +
