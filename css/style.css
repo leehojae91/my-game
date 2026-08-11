@@ -74,6 +74,16 @@ html, body {
 .stat-v.up { color: var(--green); }
 .stat-v.down { color: #e2736a; }
 .stat-actions { display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end; }
+.stat-note { font-size: 11px; color: #7d8fa6; margin: 0 0 8px; line-height: 1.5; }
+.rival-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rival-table th {
+  text-align: right; font-weight: 600; color: var(--muted); font-size: 11px;
+  padding: 4px 6px; border-bottom: 1px solid #2b3a4d;
+}
+.rival-table th:first-child, .rival-table td:first-child { text-align: left; }
+.rival-table td { padding: 5px 6px; text-align: right; border-bottom: 1px solid #1e2937; }
+.rival-table td.dim { color: #8fa0b5; font-size: 12px; }
+.rival-table td.chips { color: var(--gold); font-weight: 700; }
 
 /* ---------- 테이블 ---------- */
 .table-wrap {

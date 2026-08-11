@@ -21,6 +21,7 @@
     <div class="topbtns">
       <button id="btnAuto" class="ghost" title="판이 끝나면 자동으로 다음 판 시작">자동 진행 끔</button>
       <button id="btnSpeed" class="ghost" title="상대가 생각하는 시간">속도 보통</button>
+      <button id="btnHint" class="ghost" title="승률과 드로 안내 표시 여부">힌트 켬</button>
       <button id="btnStats" class="ghost">전적</button>
       <button id="btnSound" class="ghost" title="소리 켜기/끄기">🔊</button>
       <button id="btnRules" class="ghost">규칙</button>
@@ -101,6 +102,9 @@
   <div class="modal-inner">
     <h2>전적</h2>
     <div class="stat-grid" id="statGrid"></div>
+    <h3>상대 분석</h3>
+    <p class="stat-note">참여율은 프리플랍에 스스로 칩을 넣은 비율, 레이즈율은 프리플랍에서 올린 비율, 공격성은 플랍 이후 액션 중 올린 비율입니다.</p>
+    <table class="rival-table" id="rivalTable"></table>
     <div class="stat-actions">
       <button class="act fold" id="btnStatsClear">전적 지우기</button>
       <button class="act call" id="btnCloseStats">닫기</button>

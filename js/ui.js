@@ -23,6 +23,7 @@
     busy: false,
     auto: false,
     fast: false,
+    hint: true,
     autoTimer: null,
     autoPaused: false,
     chipsAtStart: 0,
@@ -71,7 +72,8 @@
         handNo: Game.data.handNo,
         stats: stats,
         auto: state.auto,
-        fast: state.fast
+        fast: state.fast,
+        hint: state.hint
       }));
     } catch (e) { /* 저장 실패 무시 */ }
   }
@@ -283,6 +285,13 @@
     var ev = Evaluator.evaluate(me.hole.concat(G.board));
     $('myRank').textContent = Evaluator.label(ev);
     $('myNotation').textContent = G.board.length === 0 ? Evaluator.holeNotation(me.hole) : '';
+
+    if (!state.hint) {
+      $('equityText').textContent = '힌트 꺼짐';
+      $('equityFill').style.width = '0%';
+      $('drawInfo').textContent = '';
+      return;
+    }
 
     if (me.folded) {
       $('equityText').textContent = '다이';
@@ -568,6 +577,28 @@
       return '<div class="stat-k">' + r[0] + '</div>' +
              '<div class="stat-v ' + (r[2] || '') + '">' + r[1] + '</div>';
     }).join('');
+
+    renderRivals();
+  }
+
+  /* 상대별 성향 수치 - 몇 판 이상 겪어 봐야 의미가 생긴다 */
+  function renderRivals() {
+    var rows = Game.data.players.filter(function (p) { return !p.isHuman; }).map(function (p) {
+      var s = p.stat;
+      var pct = function (a, b) { return b >= 5 ? Math.round(a / b * 100) + '%' : '-'; };
+      return '<tr>' +
+        '<td>' + p.name + '</td>' +
+        '<td class="dim">' + (p.persona ? p.persona.label : '-') + '</td>' +
+        '<td>' + pct(s.vpip, s.hands) + '</td>' +
+        '<td>' + pct(s.pfr, s.hands) + '</td>' +
+        '<td>' + pct(s.aggro, s.postActions) + '</td>' +
+        '<td class="chips">' + fmt(p.chips) + '</td>' +
+        '</tr>';
+    }).join('');
+
+    $('rivalTable').innerHTML =
+      '<thead><tr><th>상대</th><th>성향</th><th>참여율</th><th>레이즈율</th><th>공격성</th><th>보유 칩</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody>';
   }
 
   function onHandEnd(results) {
@@ -625,6 +656,7 @@
       }
       state.auto = !!saved.auto;
       state.fast = !!saved.fast;
+      if (saved.hint !== undefined) state.hint = !!saved.hint;
     }
     Game.setSpeed(state.fast ? 0.45 : 1);
 
@@ -705,8 +737,18 @@
         ? (state.fast ? '빠름' : '보통')
         : (state.fast ? '속도 빠름' : '속도 보통');
       s.classList.toggle('on', state.fast);
+      var h = $('btnHint');
+      h.textContent = state.hint ? '힌트 켬' : '힌트 끔';
+      h.classList.toggle('on', state.hint);
     }
     window.addEventListener('resize', paintToggles);
+
+    $('btnHint').onclick = function () {
+      state.hint = !state.hint;
+      paintToggles();
+      save();
+      render();
+    };
     $('btnAuto').onclick = function () {
       state.auto = !state.auto;
       paintToggles();

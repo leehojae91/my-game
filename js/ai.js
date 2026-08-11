@@ -4,10 +4,10 @@
 
   /* 성향: aggr 공격성, tight 요구 승률 기준, bluff 허풍 확률 */
   var PERSONAS = [
-    { key: 'tight', label: '신중형', aggr: 0.35, tight: 0.60, bluff: 0.05 },
-    { key: 'loose', label: '느슨형', aggr: 0.55, tight: 0.44, bluff: 0.13 },
-    { key: 'aggro', label: '공격형', aggr: 0.80, tight: 0.50, bluff: 0.24 },
-    { key: 'calm', label: '침착형', aggr: 0.45, tight: 0.53, bluff: 0.08 }
+    { key: 'tight', label: '신중형', aggr: 0.35, tight: 0.58, bluff: 0.05 },
+    { key: 'loose', label: '느슨형', aggr: 0.55, tight: 0.36, bluff: 0.13 },
+    { key: 'aggro', label: '공격형', aggr: 0.80, tight: 0.44, bluff: 0.24 },
+    { key: 'calm', label: '침착형', aggr: 0.45, tight: 0.50, bluff: 0.08 }
   ];
 
   function sameCard(a, b) { return a.r === b.r && a.s === b.s; }
@@ -177,16 +177,19 @@
     /* ---- 프리플랍: 시작 패 점수를 함께 본다 ---- */
     if (ctx.street === 'preflop') {
       var sc = startingScore(ctx.hole);
-      var openLine = 9 - pos * 3 + raises * 2;      // 늦은 자리일수록 넓게 참여
-      if (toCall <= 0) {
-        if (canRaise && sc >= openLine && Math.random() < 0.85) {
-          return raiseTo(ctx.streetBet + toCall + ctx.bigBlind * (2.2 + Math.random() * 1.3));
+      /* 참여선은 성향에서 나온다. 신중할수록 높고, 자리가 늦을수록 낮아진다 */
+      var openLine = p.tight * 14 - pos * 2.5 + raises * 2.5;
+      var isOpen = raises === 0;   // 아직 아무도 올리지 않은 상태(블라인드만 놓인 상황)
+
+      if (canRaise) {
+        if (isOpen && sc >= openLine + 1 && Math.random() < 0.55 + aggr * 0.35) {
+          return raiseTo(ctx.streetBet + toCall + ctx.bigBlind * (2 + Math.random() * 1.5));
         }
-        return { action: 'check', amount: 0, eq: eq };
+        if (!isOpen && sc >= openLine + 4 && Math.random() < aggr) {
+          return raiseTo(betSize(0.8 + Math.random() * 0.4));   // 강한 패로 재레이즈
+        }
       }
-      if (canRaise && sc >= openLine + 5 && Math.random() < aggr) {
-        return raiseTo(betSize(0.8 + Math.random() * 0.4));   // 강한 패로 재레이즈
-      }
+      if (toCall <= 0) return { action: 'check', amount: 0, eq: eq };
       /* 참여 기준에 들면 팟 오즈를 따져 콜 */
       if (sc >= openLine - 1 && noisy > toCall / (pot + toCall) - 0.05) {
         return { action: 'call', amount: toCall, eq: eq };

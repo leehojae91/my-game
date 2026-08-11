@@ -65,7 +65,11 @@
         lastAction: '',
         showCards: false,
         evalResult: null,
-        won: 0
+        won: 0,
+        /* 상대 성향 분석용 누적치 */
+        stat: { hands: 0, vpip: 0, pfr: 0, postActions: 0, aggro: 0 },
+        vpipCounted: false,
+        pfrCounted: false
       };
     });
     G.button = 0;
@@ -131,6 +135,9 @@
       p.won = 0;
       p.dealt = p.chips > 0;
       p.folded = !p.dealt;
+      p.vpipCounted = false;
+      p.pfrCounted = false;
+      if (p.dealt) p.stat.hands++;
     });
 
     /* 딜러 버튼을 칩 있는 다음 좌석으로 */
@@ -190,9 +197,27 @@
     };
   }
 
+  /* 액션을 성향 분석 수치로 환산 */
+  function recordStat(p, action) {
+    var voluntary = (action === 'call' || action === 'raise');
+    if (G.street === 'preflop') {
+      if (voluntary && !p.vpipCounted) { p.vpipCounted = true; p.stat.vpip++; }
+      if (action === 'raise' && !p.pfrCounted) { p.pfrCounted = true; p.stat.pfr++; }
+      return;
+    }
+    p.stat.postActions++;
+    if (action === 'raise') p.stat.aggro++;
+  }
+
   function applyAction(p, action, amount) {
     var L = legalFor(p);
     p.hasActed = true;
+
+    /* 요청이 규칙상 강등될 수 있으므로 실제로 취해질 액션 기준으로 집계 */
+    var effective = action;
+    if (action === 'raise' && !L.canRaise) effective = L.canCheck ? 'check' : 'call';
+    if (action === 'check' && !L.canCheck) effective = 'call';
+    recordStat(p, effective);
 
     if (action === 'fold') {
       p.folded = true;
