@@ -65,17 +65,59 @@
   }
 
   /**
-   * @param ctx {hole, board, oppCount, pot, toCall, chips, minRaiseTo, maxRaiseTo,
-   *             street, bigBlind, persona, streetBet}
+   * 시작 패 점수 (Chen 방식) - 프리플랍 참여 여부 판단에 쓴다. 범위 대략 -1 ~ 20
+   */
+  function startingScore(hole) {
+    var a = hole[0], b = hole[1];
+    var hi = a.r >= b.r ? a : b;
+    var lo = a.r >= b.r ? b : a;
+
+    var base;
+    if (hi.r === 14) base = 10;
+    else if (hi.r === 13) base = 8;
+    else if (hi.r === 12) base = 7;
+    else if (hi.r === 11) base = 6;
+    else base = hi.r / 2;
+
+    var score;
+    if (hi.r === lo.r) {
+      score = Math.max(5, base * 2);          // 페어
+    } else {
+      score = base;
+      if (hi.s === lo.s) score += 2;          // 같은 무늬
+      var gap = hi.r - lo.r - 1;
+      if (gap === 1) score -= 1;
+      else if (gap === 2) score -= 2;
+      else if (gap === 3) score -= 4;
+      else if (gap >= 4) score -= 5;
+      if (gap <= 1 && hi.r < 12) score += 1;  // 낮은 커넥터 보정
+    }
+    return Math.ceil(score);
+  }
+
+  /**
+   * @param ctx {hole, board, oppCount, pot, toCall, chips, minRaiseTo, maxRaiseTo, canRaise,
+   *             street, bigBlind, persona, streetBet, position, raises, isPreflopAggressor}
    * @returns {{action:'fold'|'check'|'call'|'raise', amount:number, eq:number}}
    */
   function decide(ctx) {
     var p = ctx.persona;
-    var eq = equity(ctx.hole, ctx.board, ctx.oppCount, itersFor(ctx.street));
-    var noisy = Math.max(0, Math.min(1, eq + (Math.random() - 0.5) * 0.06));
     var pot = ctx.pot;
     var toCall = ctx.toCall;
     var canRaise = (ctx.canRaise !== false) && ctx.maxRaiseTo > ctx.streetBet + toCall;
+    var pos = (typeof ctx.position === 'number') ? ctx.position : 0.5; // 0 얼리 ~ 1 버튼
+    var raises = ctx.raises || 0;
+
+    var eq = equity(ctx.hole, ctx.board, ctx.oppCount, itersFor(ctx.street));
+
+    /* 상대가 이번 라운드에 올렸다면 무작위 패보다 강할 확률이 높다 - 승률을 깎아 본다 */
+    var adj = eq * Math.pow(0.93, raises);
+    var noisy = Math.max(0, Math.min(1, adj + (Math.random() - 0.5) * 0.06));
+
+    /* 늦은 자리일수록 공격적으로, 여러 명이 남았을수록 신중하게 */
+    var aggr = Math.min(0.95, p.aggr + pos * 0.18);
+    var need = p.tight - pos * 0.05 + Math.max(0, ctx.oppCount - 1) * 0.03;
+    var bluffRate = p.bluff * (1 + pos * 0.2) / Math.max(1, ctx.oppCount * 0.8);
 
     function raiseTo(target) {
       var v = Math.round(target);
@@ -83,32 +125,61 @@
       if (v > ctx.maxRaiseTo) v = ctx.maxRaiseTo;
       return { action: 'raise', amount: v, eq: eq };
     }
+    function betSize(ratio) {
+      return ctx.streetBet + toCall + (pot + toCall) * ratio;
+    }
 
-    /* 아무도 안 걸었을 때 */
+    /* ---- 프리플랍: 시작 패 점수를 함께 본다 ---- */
+    if (ctx.street === 'preflop') {
+      var sc = startingScore(ctx.hole);
+      var openLine = 9 - pos * 3 + raises * 2;      // 늦은 자리일수록 넓게 참여
+      if (toCall <= 0) {
+        if (canRaise && sc >= openLine && Math.random() < 0.85) {
+          return raiseTo(ctx.streetBet + toCall + ctx.bigBlind * (2.2 + Math.random() * 1.3));
+        }
+        return { action: 'check', amount: 0, eq: eq };
+      }
+      if (canRaise && sc >= openLine + 5 && Math.random() < aggr) {
+        return raiseTo(betSize(0.8 + Math.random() * 0.4));   // 강한 패로 재레이즈
+      }
+      /* 참여 기준에 들면 팟 오즈를 따져 콜 */
+      if (sc >= openLine - 1 && noisy > toCall / (pot + toCall) - 0.05) {
+        return { action: 'call', amount: toCall, eq: eq };
+      }
+      return { action: 'fold', amount: 0, eq: eq };
+    }
+
+    /* ---- 아무도 안 걸었을 때 ---- */
     if (toCall <= 0) {
       if (canRaise) {
-        if (noisy > 0.78) return raiseTo(ctx.streetBet + pot * (0.6 + Math.random() * 0.35));
-        if (noisy > 0.62 && Math.random() < p.aggr) return raiseTo(ctx.streetBet + pot * 0.5);
-        if (noisy > p.tight && Math.random() < p.aggr * 0.6) return raiseTo(ctx.streetBet + pot * 0.35);
-        if (ctx.board.length >= 3 && Math.random() < p.bluff) return raiseTo(ctx.streetBet + pot * 0.45);
+        /* 아주 강할 때 가끔 체크로 유인 */
+        if (noisy > 0.90 && Math.random() < 0.28) return { action: 'check', amount: 0, eq: eq };
+        if (noisy > 0.75) return raiseTo(betSize(0.6 + Math.random() * 0.3));
+        if (noisy > 0.60 && Math.random() < aggr) return raiseTo(betSize(0.5));
+        /* 프리플랍에서 주도권을 잡았으면 플랍에서 이어 친다 */
+        if (ctx.isPreflopAggressor && ctx.street === 'flop' && Math.random() < 0.55 + aggr * 0.25) {
+          return raiseTo(betSize(0.45));
+        }
+        if (noisy > need && Math.random() < aggr * 0.6) return raiseTo(betSize(0.35));
+        if (Math.random() < bluffRate) return raiseTo(betSize(0.45));
       }
       return { action: 'check', amount: 0, eq: eq };
     }
 
-    /* 상대 베팅이 있을 때 */
+    /* ---- 상대 베팅이 있을 때 ---- */
     var potOdds = toCall / (pot + toCall);
     var cheap = toCall <= ctx.bigBlind * 1.5;
 
-    if (canRaise && noisy > 0.84 && Math.random() < 0.75) {
-      return raiseTo(ctx.streetBet + toCall + (pot + toCall) * (0.55 + Math.random() * 0.4));
+    if (canRaise && noisy > 0.86 && Math.random() < 0.75) {
+      return raiseTo(betSize(0.6 + Math.random() * 0.4));
     }
-    if (canRaise && noisy > 0.70 && Math.random() < p.aggr * 0.7) {
-      return raiseTo(ctx.streetBet + toCall + (pot + toCall) * 0.45);
+    if (canRaise && noisy > 0.72 && Math.random() < aggr * 0.7) {
+      return raiseTo(betSize(0.45));
     }
-    if (noisy > potOdds + 0.06) return { action: 'call', amount: toCall, eq: eq };
+    if (noisy > potOdds + 0.05) return { action: 'call', amount: toCall, eq: eq };
     if (cheap && noisy > 0.30) return { action: 'call', amount: toCall, eq: eq };
-    if (canRaise && ctx.street === 'river' && noisy < 0.22 && Math.random() < p.bluff * 0.5) {
-      return raiseTo(ctx.streetBet + toCall + (pot + toCall) * 0.7); // 드문 허풍
+    if (canRaise && ctx.street === 'river' && noisy < 0.20 && Math.random() < bluffRate * 0.5) {
+      return raiseTo(betSize(0.7));                 // 드문 허풍
     }
     return { action: 'fold', amount: 0, eq: eq };
   }
@@ -116,6 +187,7 @@
   global.AI = {
     PERSONAS: PERSONAS,
     equity: equity,
+    startingScore: startingScore,
     decide: decide
   };
 })(window);

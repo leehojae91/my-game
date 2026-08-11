@@ -16,6 +16,8 @@
     minRaise: 0,
     button: 0,
     street: null,
+    raisesThisStreet: 0,
+    preflopAggressor: -1,
     handNo: 0,
     smallBlind: 500,
     bigBlind: 1000,
@@ -105,6 +107,8 @@
     G.currentBet = 0;
     G.minRaise = G.bigBlind;
     G.street = 'preflop';
+    G.raisesThisStreet = 0;
+    G.preflopAggressor = -1;
     G.lastResult = null;
 
     G.players.forEach(function (p) {
@@ -206,6 +210,8 @@
         var raiseSize = target - prevBet;
         var fullRaise = raiseSize >= G.minRaise;
         G.currentBet = target;
+        G.raisesThisStreet++;
+        if (G.street === 'preflop') G.preflopAggressor = p.id;
         if (fullRaise) {
           G.minRaise = raiseSize;
           /* 정상 레이즈 - 나머지는 다시 액션 기회를 얻는다 */
@@ -290,6 +296,19 @@
     });
   }
 
+  /* 포스트플랍 액션 순서 기준 자리 점수. 0이면 가장 먼저, 1이면 버튼(가장 늦게) */
+  function positionScore(p) {
+    var order = [];
+    var i = G.button;
+    for (var n = 0; n < G.players.length; n++) {
+      i = nextDealtIdx(i);
+      if (!G.players[i].folded) order.push(G.players[i].id);
+    }
+    var idx = order.indexOf(p.id);
+    if (idx < 0 || order.length <= 1) return 1;
+    return idx / (order.length - 1);
+  }
+
   function askAI(p) {
     var L = legalFor(p);
     return AI.decide({
@@ -305,7 +324,10 @@
       street: G.street,
       bigBlind: G.bigBlind,
       persona: p.persona,
-      streetBet: p.streetBet
+      streetBet: p.streetBet,
+      position: positionScore(p),
+      raises: G.raisesThisStreet,
+      isPreflopAggressor: G.preflopAggressor === p.id
     });
   }
 
@@ -354,6 +376,7 @@
     G.street = street;
     G.currentBet = 0;
     G.minRaise = G.bigBlind;
+    G.raisesThisStreet = 0;
     G.players.forEach(function (p) {
       p.streetBet = 0;
       p.hasActed = false;
