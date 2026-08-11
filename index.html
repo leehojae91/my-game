@@ -73,13 +73,16 @@
 
     <div class="raise-panel" id="raisePanel">
       <div class="presets">
-        <button class="preset" data-preset="min">최소</button>
-        <button class="preset" data-preset="half">하프</button>
-        <button class="preset" data-preset="pot">팟</button>
-        <button class="preset" data-preset="allin">올인</button>
+        <button class="preset" data-preset="min"><b>최소</b><span class="pamt">-</span></button>
+        <button class="preset" data-preset="half"><b>1/2 팟</b><span class="pamt">-</span></button>
+        <button class="preset" data-preset="threeq"><b>3/4 팟</b><span class="pamt">-</span></button>
+        <button class="preset" data-preset="pot"><b>팟</b><span class="pamt">-</span></button>
+        <button class="preset allin" data-preset="allin"><b>올인</b><span class="pamt">-</span></button>
       </div>
-      <input type="range" id="raiseSlider" min="0" max="100" value="0" />
-      <div class="raise-amt">베팅액 <b id="raiseAmt">0</b></div>
+      <div class="slider-row">
+        <input type="range" id="raiseSlider" min="0" max="100" value="0" />
+        <span class="raise-amt">직접 조절 <b id="raiseAmt">0</b></span>
+      </div>
     </div>
 
     <div class="actions">

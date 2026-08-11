@@ -377,18 +377,29 @@ html, body {
 }
 
 .raise-panel {
-  display: none; flex-direction: column; gap: 6px; flex: 1; max-width: 340px;
+  display: none; flex-direction: column; gap: 8px; flex: 1; max-width: 440px;
 }
 .presets { display: flex; gap: 6px; }
+/* 누르면 바로 베팅되는 버튼이라 금액을 함께 크게 보여 준다 */
 .preset {
-  flex: 1; background: #24344a; color: #b8cbe2; border: 1px solid #35496a;
-  border-radius: 6px; padding: 4px 0; font-size: 12px; cursor: pointer;
-  font-family: inherit;
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: #24344a; color: #c6d7ec; border: 1px solid #35496a;
+  border-radius: 8px; padding: 7px 2px; cursor: pointer; font-family: inherit;
+  transition: background .12s, border-color .12s, transform .06s;
 }
-.preset:hover { background: #2e4462; color: #fff; }
-#raiseSlider { width: 100%; accent-color: var(--gold); }
-.raise-amt { font-size: 12px; color: var(--muted); text-align: right; }
-.raise-amt b { color: var(--gold); font-size: 14px; }
+.preset b { font-size: 12px; font-weight: 700; }
+.preset .pamt { font-size: 11px; font-weight: 700; color: var(--gold); }
+.preset:hover:not(:disabled) { background: #2e4462; border-color: #4a6285; color: #fff; }
+.preset:active:not(:disabled) { transform: translateY(1px); }
+.preset:disabled { opacity: .35; cursor: default; }
+.preset.is-allin { background: #3a2620; border-color: #8d4b3b; }
+.preset.is-allin .pamt { color: #ffb4a2; }
+
+.slider-row { display: flex; align-items: center; gap: 10px; }
+#raiseSlider { flex: 1; accent-color: var(--gold); }
+#raiseSlider:disabled { opacity: .35; }
+.raise-amt { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.raise-amt b { color: var(--gold); font-size: 13px; }
 
 .actions { display: flex; gap: 8px; }
 .act {
@@ -502,6 +513,9 @@ html, body {
   .controls { flex-direction: column; align-items: stretch; gap: 6px; padding: 8px 10px; }
   .myinfo { min-width: 0; }
   .raise-panel { max-width: none; }
+  .preset { padding: 6px 1px; gap: 1px; }
+  .preset b { font-size: 11px; }
+  .preset .pamt { font-size: 10px; }
   .actions { justify-content: stretch; gap: 6px; }
   .act { min-width: 0; flex: 1; font-size: 13px; padding: 10px 4px; }
   .logbox { max-height: 92px; }

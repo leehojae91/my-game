@@ -352,6 +352,58 @@
     if (G.handNo && me && me.hole.length) state.dealAnimHand = G.handNo;
   }
 
+  /* ---------- 베팅 조작 ---------- */
+
+  /* 프리셋이 가리키는 최종 베팅액. 레이즈가 불가능하면 null */
+  function presetTarget(key, L) {
+    if (!L || !L.canRaise) return null;
+    var G = Game.data;
+    var me = Game.human();
+    var base = me.streetBet + L.toCall;    // 콜까지 맞춘 지점
+    var potAfterCall = G.pot + L.toCall;   // 내가 콜했을 때의 팟
+    var target;
+    switch (key) {
+      case 'min': target = L.minRaiseTo; break;
+      case 'half': target = base + potAfterCall * 0.5; break;
+      case 'threeq': target = base + potAfterCall * 0.75; break;
+      case 'pot': target = base + potAfterCall; break;
+      default: return L.maxRaiseTo;        // 올인
+    }
+    return Math.max(L.minRaiseTo, Math.min(L.maxRaiseTo, Math.round(target)));
+  }
+
+  function raiseVerb() {
+    return Game.data.currentBet > 0 ? '레이즈' : '벳';
+  }
+
+  /* 프리셋 버튼에 실제 금액을 찍고, 슬라이더 범위를 맞춘다 */
+  function updateBetPanel(L) {
+    Array.prototype.forEach.call(document.querySelectorAll('.preset'), function (b) {
+      var target = presetTarget(b.dataset.preset, L);
+      var amtEl = b.querySelector('.pamt');
+      if (target === null) {
+        b.disabled = true;
+        amtEl.textContent = '-';
+        b.classList.remove('is-allin');
+        return;
+      }
+      b.disabled = false;
+      amtEl.textContent = fmt(target);
+      /* 프리셋 금액이 남은 칩 전부라면 올인이라는 걸 알려 준다 */
+      b.classList.toggle('is-allin', target >= L.maxRaiseTo);
+    });
+
+    var slider = $('raiseSlider');
+    slider.min = L.minRaiseTo;
+    slider.max = L.maxRaiseTo;
+    slider.step = Math.max(100, Math.round(Game.data.bigBlind / 2));
+    slider.disabled = L.minRaiseTo >= L.maxRaiseTo;
+    state.raiseTo = L.minRaiseTo;
+    slider.value = state.raiseTo;
+    $('raiseAmt').textContent = fmt(state.raiseTo);
+    $('btnRaise').textContent = raiseVerb() + ' ' + fmt(state.raiseTo);
+  }
+
   /* ---------- 사람 차례 ---------- */
   function showActionButtons(show) {
     ['btnFold', 'btnCheck', 'btnCall', 'btnRaise'].forEach(function (id) {
@@ -391,18 +443,11 @@
     $('btnCheck').style.display = legal.canCheck ? 'inline-block' : 'none';
     $('btnCall').style.display = legal.canCheck ? 'none' : 'inline-block';
     $('btnCall').textContent = '콜 ' + fmt(legal.toCall);
-    $('btnRaise').textContent = Game.data.currentBet > 0 ? '레이즈' : '벳';
     $('btnRaise').style.display = legal.canRaise ? 'inline-block' : 'none';
     $('btnStart').style.display = 'none';
     $('btnRebuy').style.display = 'none';
 
-    var slider = $('raiseSlider');
-    slider.min = legal.minRaiseTo;
-    slider.max = legal.maxRaiseTo;
-    slider.step = Math.max(100, Math.round(Game.data.bigBlind / 2));
-    state.raiseTo = legal.minRaiseTo;
-    slider.value = state.raiseTo;
-    $('raiseAmt').textContent = fmt(state.raiseTo);
+    updateBetPanel(legal);
 
     $('actionHint').textContent = legal.toCall > 0
       ? '내 차례 — 콜 하려면 ' + fmt(legal.toCall) + ' 필요'
@@ -810,25 +855,16 @@
     $('raiseSlider').oninput = function () {
       state.raiseTo = parseInt(this.value, 10);
       $('raiseAmt').textContent = fmt(state.raiseTo);
+      $('btnRaise').textContent = raiseVerb() + ' ' + fmt(state.raiseTo);
     };
 
-    document.querySelectorAll('.preset').forEach(function (b) {
+    /* 프리셋은 누르는 즉시 베팅한다 (한 번 더 확인하는 단계 없음) */
+    Array.prototype.forEach.call(document.querySelectorAll('.preset'), function (b) {
       b.onclick = function () {
-        var L = state.legal;
-        if (!L) return;
-        var G = Game.data;
-        var me = Game.human();
-        var target;
-        switch (this.dataset.preset) {
-          case 'min': target = L.minRaiseTo; break;
-          case 'half': target = me.streetBet + L.toCall + Math.round((G.pot + L.toCall) * 0.5); break;
-          case 'pot': target = me.streetBet + L.toCall + (G.pot + L.toCall); break;
-          default: target = L.maxRaiseTo;
-        }
-        target = Math.max(L.minRaiseTo, Math.min(L.maxRaiseTo, Math.round(target)));
-        state.raiseTo = target;
-        $('raiseSlider').value = target;
-        $('raiseAmt').textContent = fmt(target);
+        if (this.disabled) return;
+        var target = presetTarget(this.dataset.preset, state.legal);
+        if (target === null) return;
+        doHumanAct('raise', target);
       };
     });
 
