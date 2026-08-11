@@ -19,11 +19,22 @@
 
 html, body {
   margin: 0; padding: 0; height: 100%;
-  background: radial-gradient(circle at 50% 0%, #1b2534 0%, var(--bg) 60%);
+  background:
+    radial-gradient(1100px 620px at 50% -12%, #22344a 0%, transparent 62%),
+    radial-gradient(820px 460px at 50% 112%, #16202e 0%, transparent 58%),
+    linear-gradient(180deg, #0e141c 0%, #070b10 100%);
   color: var(--text);
   font-family: "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", sans-serif;
   overflow: hidden;
 }
+
+/* 화면 전체에 아주 옅은 잡티를 깔아 단조로운 면을 없앤다 */
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+#app { position: relative; z-index: 1; }
 
 #app {
   height: 100%;
@@ -105,26 +116,55 @@ html, body {
   display: flex; align-items: center; justify-content: center;
   min-height: 0;
 }
+/* 테이블은 바깥 나무 레일 + 안쪽 펠트 두 겹으로 만든다 */
 .table {
   position: relative;
   width: min(100%, 900px);
   height: 100%;
   max-height: 560px;
+  padding: 16px;
+  border-radius: 264px / 194px;
   background:
-    radial-gradient(ellipse at 50% 45%, var(--felt) 0%, var(--felt2) 70%, #082b19 100%);
-  border: 10px solid #3a2a17;
-  border-radius: 260px / 190px;
-  box-shadow: 0 0 0 3px var(--gold-dim), inset 0 0 60px rgba(0,0,0,.55), 0 18px 40px rgba(0,0,0,.5);
+    repeating-linear-gradient(102deg, rgba(255,255,255,.04) 0 2px, transparent 2px 7px),
+    linear-gradient(148deg, #8a663a 0%, #55391f 17%, #7a5730 36%,
+                    #402b19 54%, #714f2d 74%, #392514 89%, #241708 100%);
+  box-shadow:
+    0 0 0 2px rgba(232,196,106,.32),
+    0 26px 60px rgba(0,0,0,.62),
+    inset 0 2px 3px rgba(255,255,255,.16),
+    inset 0 -3px 7px rgba(0,0,0,.5);
+}
+/* 펠트: 위쪽에서 조명을 받는 느낌 */
+.table::before {
+  content: ''; position: absolute; inset: 16px;
+  border-radius: 250px / 182px;
+  background:
+    radial-gradient(ellipse 56% 50% at 50% 38%, rgba(255,255,255,.13) 0%, transparent 62%),
+    radial-gradient(ellipse at 50% 45%, #1a8049 0%, #126239 42%, #0a4125 74%, #062a19 100%);
+  box-shadow: inset 0 0 70px rgba(0,0,0,.55), inset 0 0 0 2px rgba(0,0,0,.32);
+  z-index: 0;
+}
+/* 레일 안쪽 박음질선 */
+.table::after {
+  content: ''; position: absolute; inset: 11px;
+  border-radius: 255px / 187px;
+  border: 1px dashed rgba(232,196,106,.26);
+  pointer-events: none; z-index: 1;
 }
 .felt-logo {
-  position: absolute; top: 26%; left: 50%; transform: translateX(-50%);
-  font-size: 40px; font-weight: 800; letter-spacing: 8px;
-  color: rgba(255,255,255,.05); pointer-events: none; user-select: none;
+  position: absolute; top: 25%; left: 50%; transform: translateX(-50%);
+  font-size: 42px; font-weight: 800; letter-spacing: 10px;
+  color: transparent;
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+  -webkit-background-clip: text; background-clip: text;
+  text-shadow: 0 1px 0 rgba(0,0,0,.25);
+  pointer-events: none; user-select: none; z-index: 1;
 }
 
 .center {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center; gap: 8px;
+  z-index: 2;
 }
 .pot-box {
   background: rgba(0,0,0,.42); border: 1px solid var(--gold-dim);
@@ -219,16 +259,21 @@ html, body {
   position: absolute;
   width: 216px;
   display: flex; align-items: center; gap: 7px;
-  background: rgba(8,16,26,.72);
-  border: 1px solid #2c3d52; border-radius: 12px;
+  background: linear-gradient(180deg, rgba(16,25,38,.95), rgba(7,12,20,.95));
+  border: 1px solid #3a4d66; border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.45);
   padding: 6px 8px;
   transition: box-shadow .2s, border-color .2s, opacity .2s;
+  z-index: 3;
 }
 .seat.out { opacity: .3; }
 .seat.folded { opacity: .45; filter: grayscale(.7); }
 .seat.active { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(232,196,106,.35), 0 0 18px rgba(232,196,106,.25); }
 .seat.winner { border-color: var(--green); box-shadow: 0 0 0 2px rgba(47,181,106,.4), 0 0 22px rgba(47,181,106,.35); }
-.seat.me { background: rgba(16,30,48,.85); border-color: #3f6ea8; }
+.seat.me {
+  background: linear-gradient(180deg, rgba(22,42,68,.96), rgba(10,20,34,.96));
+  border-color: #4a7cb8;
+}
 
 .avatar {
   width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%;
@@ -291,6 +336,7 @@ html, body {
   background: rgba(0,0,0,.5); border: 1px solid var(--gold-dim);
   color: var(--gold); font-size: 12px; font-weight: 700;
   border-radius: 12px; padding: 2px 8px;
+  z-index: 3;
 }
 .chip-dot {
   width: 10px; height: 10px; border-radius: 50%;
@@ -308,7 +354,7 @@ html, body {
   background: #f5f2e8; color: #1c1c1c; font-size: 12px; font-weight: 800;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid #b9ad8c; box-shadow: 0 2px 6px rgba(0,0,0,.4);
-  transition: all .3s;
+  transition: all .3s; z-index: 4;
 }
 .dealer-btn.d-0 { bottom: 15%; left: 60%; }
 .dealer-btn.d-1 { left: 22%; top: 58%; }
@@ -506,7 +552,9 @@ html, body {
   #btnSound, #btnReset { display: none; }
   .ghost { padding: 4px 6px; font-size: 11px; }
   .felt-logo { display: none; }
-  .table { border-width: 6px; border-radius: 170px / 140px; }
+  .table { padding: 8px; border-radius: 172px / 142px; }
+  .table::before { inset: 8px; border-radius: 165px / 135px; }
+  .table::after { inset: 5px; border-radius: 168px / 138px; }
 
   /* 좁은 화면에서는 상대 셋을 위쪽 반원에 모아 보드와 겹치지 않게 한다 */
   #seat-1 { left: 2px; top: 20%; transform: none; }
