@@ -276,7 +276,8 @@ html, body {
   margin-top: 4px; height: 4px; background: rgba(255,255,255,.12);
   border-radius: 3px; overflow: hidden;
 }
-.turnbar i { display: block; height: 100%; background: var(--gold); transition: width .2s linear; }
+.turnbar i { display: block; height: 100%; background: var(--gold); transition: width .2s linear, background .2s; }
+.turnbar i.urgent { background: var(--red); }
 
 /* 좌석 위치 */
 #seat-0 { bottom: -14px; left: 50%; transform: translateX(-50%); }

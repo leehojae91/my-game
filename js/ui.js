@@ -44,6 +44,7 @@
     level: 'normal',
     preAction: null,     // 내 차례가 오면 자동으로 취할 액션
     sliderOpen: false,
+    lockUntil: 0,        // 이 시각까지는 입력을 받지 않는다 (연타 방지)
     autoTimer: null,
     autoPaused: false,
     chipsAtStart: 0,
@@ -438,6 +439,7 @@
   function startTurnTimer() {
     stopTurnTimer();
     state.turnLeft = TURN_SECONDS;
+    state.lastBeepSec = -1;
     state.turnTimer = setInterval(function () {
       state.turnLeft -= 0.2;
       if (state.turnLeft <= 0) {
@@ -448,7 +450,16 @@
       }
       /* 좌석 전체를 다시 그리지 않고 막대만 줄인다 */
       var bar = document.querySelector('#seat-0 .turnbar i');
-      if (bar) bar.style.width = (state.turnLeft / TURN_SECONDS * 100) + '%';
+      if (bar) {
+        bar.style.width = (state.turnLeft / TURN_SECONDS * 100) + '%';
+        bar.classList.toggle('urgent', state.turnLeft <= 5);
+      }
+      /* 남은 5초부터 1초마다 알린다 */
+      var sec = Math.ceil(state.turnLeft);
+      if (sec <= 5 && sec !== state.lastBeepSec) {
+        state.lastBeepSec = sec;
+        beep(420, 0.06, 0.035);
+      }
     }, 200);
   }
   function stopTurnTimer() {
@@ -468,6 +479,7 @@
       render();
       setTimeout(function () {
         if (!Game.isWaitingHuman()) return;
+        state.lockUntil = 0;   // 예약 실행은 연타 잠금과 무관하다
         if (pa === 'call') doHumanAct(legal.canCheck ? 'check' : 'call', 0);
         else doHumanAct(legal.canCheck ? 'check' : 'fold', 0);
       }, 340);
@@ -475,6 +487,8 @@
     }
 
     beep(880, 0.09, 0.05);
+    /* 버튼이 막 나타난 순간의 오조작을 막는다 */
+    state.lockUntil = Date.now() + 260;
 
     showActionButtons(true);
     /* 체크와 콜은 동시에 뜨면 안 된다 - 표시 순서 주의 */
@@ -487,9 +501,15 @@
 
     updateBetPanel(legal);
 
-    $('actionHint').textContent = legal.toCall > 0
+    var hintText = legal.toCall > 0
       ? '내 차례 — 콜 하려면 ' + fmt(legal.toCall) + ' 필요'
       : '내 차례 — 체크 또는 벳';
+    if (state.hint && legal.toCall > 0) {
+      /* 팟 오즈: 이 콜이 팟에서 차지하는 비율. 승률이 이보다 높으면 콜이 이득 */
+      var odds = Math.round(legal.toCall / (Game.data.pot + legal.toCall) * 100);
+      hintText += ' · 팟 오즈 ' + odds + '%';
+    }
+    $('actionHint').textContent = hintText;
 
     render();
     startTurnTimer();
@@ -497,6 +517,9 @@
 
   function doHumanAct(action, amount) {
     if (!Game.isWaitingHuman()) return;
+    /* 원터치 베팅이라 연타가 다음 차례로 흘러가지 않도록 잠깐 잠근다 */
+    if (Date.now() < state.lockUntil) return;
+    state.lockUntil = Date.now() + 350;
     stopTurnTimer();
     state.preAction = null;
     state.myTurn = false;
@@ -911,6 +934,17 @@
       $('btnStart').style.display = 'inline-block';
     };
 
+    /* 슬라이더 위에서 휠을 굴려도 조절된다 */
+    $('raiseSlider').onwheel = function (e) {
+      if (this.disabled) return;
+      e.preventDefault();
+      var step = parseInt(this.step, 10) || 100;
+      var next = parseInt(this.value, 10) + (e.deltaY < 0 ? step : -step);
+      next = Math.max(parseInt(this.min, 10), Math.min(parseInt(this.max, 10), next));
+      this.value = next;
+      this.oninput();
+    };
+
     $('raiseSlider').oninput = function () {
       state.raiseTo = parseInt(this.value, 10);
       $('raiseAmt').textContent = fmt(state.raiseTo);
@@ -997,6 +1031,12 @@
       else if (e.key === 'c' || e.key === 'C') {
         doHumanAct(state.legal && state.legal.canCheck ? 'check' : 'call', 0);
       } else if (e.key === 'r' || e.key === 'R') doHumanAct('raise', state.raiseTo);
+      else if (e.key >= '1' && e.key <= '5') {
+        /* 숫자키로 프리셋 즉시 베팅 */
+        var keys = ['min', 'half', 'threeq', 'pot', 'allin'];
+        var target = presetTarget(keys[parseInt(e.key, 10) - 1], state.legal);
+        if (target !== null) doHumanAct('raise', target);
+      }
     });
 
     showActionButtons(false);
