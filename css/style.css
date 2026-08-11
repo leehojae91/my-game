@@ -139,6 +139,11 @@ html, body {
   border: 1px solid #0e2a52;
 }
 .card.mini { width: 36px; height: 50px; border-radius: 5px; }
+.card.mini.dealing { animation: dealto .3s ease-out backwards; }
+@keyframes dealto {
+  from { transform: translate(0, -120px) scale(.5) rotate(12deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
 .card.mini .crank { font-size: 14px; }
 .card.mini .csuit { font-size: 12px; }
 .board-card.fresh { animation: dealin .34s ease-out backwards; }
@@ -346,6 +351,16 @@ html, body {
 .equity-text { font-size: 12px; color: #b9c9dd; min-width: 62px; }
 .draw-info { font-size: 11px; color: #7fd0a5; margin-top: 3px; min-height: 14px; }
 .hint { font-size: 12px; color: #7d8fa6; margin-top: 4px; }
+.keys { font-size: 11px; color: #5f7086; margin-top: 4px; }
+.keys b {
+  color: #9fb4cc; background: #1e2a3a; border: 1px solid #33455c;
+  border-radius: 3px; padding: 0 4px; font-size: 10px;
+}
+
+/* 키보드 이동 시에만 보이는 초점 표시 */
+.act:focus-visible, .ghost:focus-visible, .preset:focus-visible, #raiseSlider:focus-visible {
+  outline: 2px solid var(--gold); outline-offset: 2px;
+}
 
 .raise-panel {
   display: none; flex-direction: column; gap: 6px; flex: 1; max-width: 340px;
@@ -476,6 +491,7 @@ html, body {
   .actions { justify-content: stretch; gap: 6px; }
   .act { min-width: 0; flex: 1; font-size: 13px; padding: 10px 4px; }
   .logbox { max-height: 92px; }
+  .keys { display: none; }
   .modal-inner { padding: 16px 18px; margin: 12px; }
 }
 

@@ -129,14 +129,20 @@
     var cardsHtml = '';
     if (p.dealt && p.hole.length) {
       var faceUp = p.isHuman || p.showCards;
+      /* 판이 시작된 직후 한 번만 나눠 주는 애니메이션을 붙인다 */
+      var dealing = state.dealAnimHand !== Game.data.handNo;
       cardsHtml = '<div class="hole">' +
-        p.hole.map(function (c) {
-          var hi = state.highlight[cardKey(c)] ? ' hit' : '';
+        p.hole.map(function (c, ci) {
+          var cls = 'card mini' + (state.highlight[cardKey(c)] ? ' hit' : '');
+          var style = dealing
+            ? ' style="animation-delay:' + ((p.id * 2 + ci) * 0.07) + 's"'
+            : '';
+          if (dealing) cls += ' dealing';
           return faceUp
-            ? '<div class="card mini ' + (Cards.isRed(c) ? 'red' : 'black') + hi + '">' +
+            ? '<div class="' + cls + ' ' + (Cards.isRed(c) ? 'red' : 'black') + '"' + style + '>' +
                 '<span class="crank">' + Cards.RANK_LABEL[c.r] + '</span>' +
                 '<span class="csuit">' + Cards.SUIT_SYMBOL[c.s] + '</span></div>'
-            : '<div class="card mini back"></div>';
+            : '<div class="' + cls + ' back"' + style + '></div>';
         }).join('') +
         '</div>';
     }
@@ -324,6 +330,7 @@
     $('myChips').textContent = fmt(me ? me.chips : 0);
     $('blindInfo').textContent = fmt(G.smallBlind) + ' / ' + fmt(G.bigBlind);
     $('handNo').textContent = G.handNo;
+    if (G.handNo && me && me.hole.length) state.dealAnimHand = G.handNo;
   }
 
   /* ---------- 사람 차례 ---------- */
@@ -394,6 +401,8 @@
     showActionButtons(false);
     $('actionHint').textContent = '';
     beep(action === 'fold' ? 240 : 520, 0.07, 0.04);
+    /* 내가 빠진 판은 굳이 천천히 볼 이유가 없다 */
+    if (action === 'fold') Game.setSpeed(0.28);
     Game.humanAct(action, amount);
   }
 
@@ -604,6 +613,7 @@
   function onHandEnd(results) {
     state.busy = false;
     state.activeId = -1;
+    Game.setSpeed(state.fast ? 0.45 : 1);   // 다이 가속 해제
     collectStats(results);
     save();
     render();
@@ -807,6 +817,9 @@
     $('btnRebuy').style.display = 'none';
     render();
     addLog('게임 준비 완료. 시작 버튼을 누르세요.', 'sys');
+
+    /* 처음 방문이면 규칙부터 보여 준다 */
+    if (!saved) openModal('rulesModal');
   }
 
   window.addEventListener('DOMContentLoaded', init);
