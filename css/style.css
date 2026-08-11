@@ -148,14 +148,35 @@ html, body {
   transition: transform .2s, box-shadow .2s;
 }
 
+/* 테이블 위에 띄우는 연출 (좌석 재렌더에 영향받지 않는다) */
+.fx { position: absolute; transform: translateX(-50%); pointer-events: none; z-index: 7; }
+
 /* 획득 금액 떠오르기 */
 .float-win {
-  position: absolute; top: -6px; left: 50%;
-  transform: translateX(-50%);
   color: #ffe9a8; font-weight: 800; font-size: 16px;
   text-shadow: 0 2px 6px rgba(0,0,0,.8);
   animation: floatup 1.6s ease-out forwards;
-  pointer-events: none; z-index: 6;
+}
+
+/* 상대 한마디 */
+.bubble {
+  background: rgba(250,250,245,.95); color: #1c2430;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+  border-radius: 12px; padding: 5px 11px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.45);
+  animation: bubblein .22s ease-out, bubbleout .3s ease-in 1.9s forwards;
+}
+.bubble::after {
+  content: ''; position: absolute; bottom: -5px; left: 50%;
+  margin-left: -5px; border: 5px solid transparent;
+  border-top-color: rgba(250,250,245,.95); border-bottom: 0;
+}
+@keyframes bubblein {
+  from { opacity: 0; transform: translate(-50%, 6px) scale(.9); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+@keyframes bubbleout {
+  to { opacity: 0; transform: translate(-50%, -6px); }
 }
 @keyframes floatup {
   0% { opacity: 0; transform: translate(-50%, 6px) scale(.8); }
@@ -204,6 +225,7 @@ html, body {
 }
 .seat-chips { font-size: 15px; font-weight: 700; color: var(--gold); white-space: nowrap; }
 .seat-hand { font-size: 11px; color: var(--green); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seat-eq { font-size: 11px; color: #ffd777; font-weight: 700; white-space: nowrap; }
 .hole { display: flex; gap: 3px; flex: 0 0 auto; }
 .allin-tag {
   position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
@@ -276,6 +298,8 @@ html, body {
 .result-banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 .rline b { color: var(--gold); }
 .result-banner.win { border-color: var(--green); }
+.result-banner.allin { border-color: var(--red); }
+.result-banner.allin .rtitle { color: #ff8a7a; letter-spacing: 4px; }
 .result-banner.lose { border-color: #5a6b80; }
 .rtitle { font-size: 24px; font-weight: 800; margin-bottom: 6px; color: var(--gold); }
 .result-banner.win .rtitle { color: var(--green); }

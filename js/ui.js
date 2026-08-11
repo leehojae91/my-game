@@ -93,6 +93,24 @@
     ul.scrollTop = ul.scrollHeight;
   }
 
+  /* 올인 공개 상황의 좌석별 승률 (보드가 바뀔 때만 계산) */
+  function runoutEquities() {
+    var G = Game.data;
+    if (!G.allInShowdown || G.street === 'showdown') return null;
+    var live = Game.contenders();
+    if (live.length < 2) return null;
+
+    var key = G.handNo + '|' + G.board.length + '|' + live.length;
+    if (state.runoutKey === key) return state.runoutMap;
+
+    var eqs = AI.knownEquity(live.map(function (p) { return p.hole; }), G.board);
+    var map = {};
+    live.forEach(function (p, i) { map[p.id] = eqs[i]; });
+    state.runoutKey = key;
+    state.runoutMap = map;
+    return map;
+  }
+
   /* ---------- 좌석 그리기 ---------- */
   function renderSeat(p) {
     var el = $('seat-' + p.id);
@@ -127,6 +145,12 @@
 
     var handInfo = (p.showCards && p.evalResult)
       ? '<div class="seat-hand">' + p.evalResult.name + '</div>' : '';
+
+    /* 올인 대결 중에는 각자의 실제 승률을 보여 준다 */
+    var eqMap = runoutEquities();
+    if (eqMap && eqMap[p.id] !== undefined && !p.evalResult) {
+      handInfo = '<div class="seat-eq">승률 ' + Math.round(eqMap[p.id] * 100) + '%</div>';
+    }
 
     var timerBar = (isActive && p.isHuman)
       ? '<div class="turnbar"><i style="width:' + (state.turnLeft / TURN_SECONDS * 100) + '%"></i></div>'
@@ -396,14 +420,50 @@
     Game.play();
   }
 
-  /* 획득 금액을 좌석 위로 띄운다 */
+  /* ---------- 상대 한마디 ---------- */
+  var TALK = {
+    allin: ['여기서 끝냅시다', '다 걸었습니다', '따라올 수 있겠어요?', '이번 판에 걸겠습니다'],
+    bigraise: ['이 정도는 받아야죠', '약해 보이는데요', '슬슬 올려 볼까요', '자신 있으면 따라오세요'],
+    fold: ['이번엔 접겠습니다', '패가 영 아니네요', '다음 판을 노리죠'],
+    win: ['잘 먹었습니다', '운이 좋았네요', '감사합니다', '오늘 손이 좋군요']
+  };
+  var TALK_BY_PERSONA = {
+    aggro: { bigraise: ['겁먹지 말고 따라와요', '판을 키웁시다'], win: ['이게 실력이죠'] },
+    tight: { fold: ['무리할 자리가 아니네요'], win: ['기다린 보람이 있네요'] },
+    loose: { bigraise: ['재미있어지네요'], fold: ['이번은 양보하죠'] },
+    calm: { allin: ['계산은 끝났습니다'], win: ['예상대로군요'] }
+  };
+
+  function showTalk(p, kind) {
+    var pool = TALK[kind] || [];
+    var special = p.persona && TALK_BY_PERSONA[p.persona.key] && TALK_BY_PERSONA[p.persona.key][kind];
+    if (special && Math.random() < 0.5) pool = special;
+    if (!pool.length) return;
+
+    var b = document.createElement('div');
+    b.className = 'fx bubble';
+    b.textContent = pool[Math.floor(Math.random() * pool.length)];
+    spawnFx(p.id, b, -30, 2200);
+  }
+
+  /* 좌석 재렌더에 지워지지 않도록 연출은 테이블 위에 따로 띄운다 */
+  function spawnFx(pid, node, offsetY, life) {
+    var table = $('table');
+    var seat = $('seat-' + pid);
+    if (!table || !seat) return;
+    var tr = table.getBoundingClientRect();
+    var sr = seat.getBoundingClientRect();
+    node.style.left = Math.round(sr.left - tr.left + sr.width / 2) + 'px';
+    node.style.top = Math.round(sr.top - tr.top + (offsetY || 0)) + 'px';
+    table.appendChild(node);
+    setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, life);
+  }
+
   function floatWin(p, amount) {
-    var seat = $('seat-' + p.id);
     var tag = document.createElement('div');
-    tag.className = 'float-win';
+    tag.className = 'fx float-win';
     tag.textContent = '+' + fmt(amount);
-    seat.appendChild(tag);
-    setTimeout(function () { if (tag.parentNode) tag.parentNode.removeChild(tag); }, 1600);
+    spawnFx(p.id, tag, -4, 1600);
   }
 
   function onShowdown(results) {
@@ -574,6 +634,17 @@
       onHumanTurn: onHumanTurn,
       onShowdown: onShowdown,
       onHandEnd: onHandEnd,
+      onTalk: showTalk,
+      onAllIn: function () {
+        var banner = $('resultBanner');
+        banner.className = 'result-banner show allin';
+        banner.innerHTML = '<div class="rtitle">올인 대결</div>' +
+                           '<div class="rline">남은 카드로 승부가 갈립니다</div>';
+        beep(520, 0.18, 0.06);
+        setTimeout(function () {
+          if (banner.classList.contains('allin')) banner.className = 'result-banner';
+        }, 1800);
+      },
       onActorChange: function (p) { state.activeId = p.id; }
     });
 

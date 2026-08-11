@@ -58,6 +58,50 @@
   }
 
   /* 실측상 400~900회도 한 번에 10밀리초 미만이라 정확도를 우선한다 */
+  /**
+   * 모두의 패가 공개된 올인 상황의 실제 승률.
+   * 남은 카드가 적으면 전부 세어 보고, 많으면 표본을 뽑는다.
+   * @returns {number[]} holes와 같은 순서의 승률(무승부는 지분으로 나눔)
+   */
+  function knownEquity(holes, board) {
+    var dead = board.slice();
+    holes.forEach(function (h) { dead = dead.concat(h); });
+    var deck = remainingDeck(dead);
+    var need = 5 - board.length;
+    var wins = holes.map(function () { return 0; });
+    var total = 0;
+
+    function score(full) {
+      var best = null;
+      var evs = holes.map(function (h) {
+        var e = Evaluator.evaluate(h.concat(full));
+        if (!best || Evaluator.compare(e, best) > 0) best = e;
+        return e;
+      });
+      var winners = [];
+      evs.forEach(function (e, i) { if (Evaluator.compare(e, best) === 0) winners.push(i); });
+      winners.forEach(function (i) { wins[i] += 1 / winners.length; });
+      total++;
+    }
+
+    var i, j;
+    if (need <= 0) {
+      score(board);
+    } else if (need === 1) {
+      for (i = 0; i < deck.length; i++) score(board.concat([deck[i]]));
+    } else if (need === 2) {
+      for (i = 0; i < deck.length; i++) {
+        for (j = i + 1; j < deck.length; j++) score(board.concat([deck[i], deck[j]]));
+      }
+    } else {
+      for (i = 0; i < 1500; i++) {
+        Cards.shuffle(deck, need);
+        score(board.concat(deck.slice(0, need)));
+      }
+    }
+    return wins.map(function (w) { return total ? w / total : 0; });
+  }
+
   function itersFor(street) {
     if (street === 'preflop') return 400;
     if (street === 'flop') return 500;
@@ -188,6 +232,7 @@
   global.AI = {
     PERSONAS: PERSONAS,
     equity: equity,
+    knownEquity: knownEquity,
     startingScore: startingScore,
     decide: decide
   };

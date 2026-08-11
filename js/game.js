@@ -18,6 +18,7 @@
     street: null,
     raisesThisStreet: 0,
     preflopAggressor: -1,
+    allInShowdown: false,
     handNo: 0,
     smallBlind: 500,
     bigBlind: 1000,
@@ -114,6 +115,7 @@
     G.street = 'preflop';
     G.raisesThisStreet = 0;
     G.preflopAggressor = -1;
+    G.allInShowdown = false;
     G.lastResult = null;
 
     G.players.forEach(function (p) {
@@ -167,6 +169,11 @@
 
   function fmt(n) { return n.toLocaleString('ko-KR'); }
 
+  /* 컴퓨터 상대의 한마디 (사람은 제외) */
+  function talk(p, kind) {
+    if (!p.isHuman && G.hooks.onTalk) G.hooks.onTalk(p, kind);
+  }
+
   /* ---------- 액션 규칙 ---------- */
 
   function legalFor(p) {
@@ -191,6 +198,7 @@
       p.folded = true;
       p.lastAction = '다이';
       log(p.name + ' 다이', 'fold');
+      if (Math.random() < 0.25) talk(p, 'fold');
       return;
     }
     if (action === 'check' && L.canCheck) {
@@ -235,6 +243,8 @@
       }
       p.lastAction = p.allIn ? '올인' : (prevBet > 0 ? '레이즈' : '벳');
       log(p.name + ' ' + p.lastAction + ' ' + fmt(target), 'raise');
+      if (p.allIn) talk(p, 'allin');
+      else if (target - prevBet >= G.bigBlind * 4 && Math.random() < 0.5) talk(p, 'bigraise');
       return;
     }
 
@@ -444,6 +454,7 @@
       w.won = G.pot;
       results.push({ winners: [w], amount: G.pot, potIndex: 0, noShowdown: true });
       log(w.name + ' 승리 ' + fmt(G.pot) + ' 획득 (상대 전원 다이)', 'win');
+      talk(w, 'win');
       G.pot = 0;
       return results;
     }
@@ -469,6 +480,7 @@
         var got = share + (i === 0 ? remain : 0);
         p.chips += got;
         p.won += got;
+        if (pi === 0) talk(p, 'win');
       });
       results.push({ winners: winners, amount: pot.amount, potIndex: pi, best: best });
       log(
@@ -515,16 +527,23 @@
 
       var st = STREETS[streetIdx];
       startStreet(st);
+
+      /* 더 이상 액션할 사람이 없으면 카드를 공개하고 천천히 깐다 */
+      var actionable = contenders().filter(function (p) { return !p.allIn && p.chips > 0; });
+      var runout = actionable.length <= 1 && contenders().length > 1;
+      if (runout && !G.allInShowdown) {
+        G.allInShowdown = true;
+        contenders().forEach(function (p) { p.showCards = true; });
+        log('올인 대결 — 카드 공개', 'sys');
+        if (G.hooks.onAllIn) G.hooks.onAllIn();
+        update();
+      }
+
       dealBoard(st === 'flop' ? 3 : 1);
       log(STREET_LABEL[st] + ' — ' + G.board.map(Cards.cardLabel).join(' '), 'sys');
       update();
 
-      /* 액션 가능한 사람이 1명 이하면 카드만 계속 깐다 */
-      var actionable = contenders().filter(function (p) { return !p.allIn && p.chips > 0; });
-      if (actionable.length <= 1 && contenders().length > 1) {
-        var needCall = actionable.length === 1 && actionable[0].streetBet < G.currentBet;
-        if (!needCall) return pace(700).then(nextStreet);
-      }
+      if (runout) return pace(1300).then(nextStreet);
 
       return pace(400)
         .then(function () { return bettingRound(firstToActPostflop()); })
