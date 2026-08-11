@@ -29,7 +29,7 @@ html, body {
   height: 100%;
   display: grid;
   grid-template-columns: 1fr 260px;
-  grid-template-rows: 52px 1fr 132px;
+  grid-template-rows: 52px 1fr 148px;
   grid-template-areas:
     "top top"
     "table log"
@@ -241,10 +241,28 @@ html, body {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 16px; gap: 14px;
 }
-.myinfo { min-width: 220px; }
-.myrank { font-size: 13px; color: var(--muted); }
+.myinfo { min-width: 260px; }
+.myrank { font-size: 13px; color: var(--muted); display: flex; align-items: baseline; gap: 6px; }
 .myrank b { color: var(--gold); font-size: 15px; }
-.hint { font-size: 12px; color: #7d8fa6; margin-top: 6px; }
+.notation {
+  font-size: 11px; color: #8fb4de; background: #1f2f44;
+  border: 1px solid #33506f; border-radius: 4px; padding: 1px 5px;
+}
+.equity-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.equity-bar {
+  flex: 1; height: 7px; background: rgba(255,255,255,.09);
+  border-radius: 4px; overflow: hidden; max-width: 190px;
+}
+.equity-bar i {
+  display: block; height: 100%; width: 0;
+  background: var(--blue); transition: width .35s ease;
+}
+.equity-bar i.good { background: linear-gradient(90deg, #2fb56a, #6fe0a3); }
+.equity-bar i.mid { background: linear-gradient(90deg, #c39a3c, #ecc972); }
+.equity-bar i.bad { background: linear-gradient(90deg, #8d3b34, #d0685c); }
+.equity-text { font-size: 12px; color: #b9c9dd; min-width: 62px; }
+.draw-info { font-size: 11px; color: #7fd0a5; margin-top: 3px; min-height: 14px; }
+.hint { font-size: 12px; color: #7d8fa6; margin-top: 4px; }
 
 .raise-panel {
   display: none; flex-direction: column; gap: 6px; flex: 1; max-width: 340px;

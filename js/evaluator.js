@@ -210,10 +210,64 @@
     return ev.detail ? ev.name + ' (' + ev.detail + ')' : ev.name;
   }
 
+  /* 개인 카드 2장 표기 - AA, AKs(같은 무늬), AKo(다른 무늬) */
+  function holeNotation(hole) {
+    if (!hole || hole.length < 2) return '';
+    /* 표기에서는 10을 T로 줄여 쓴다 */
+    function n(r) { return r === 10 ? 'T' : RL[r]; }
+    var a = hole[0], b = hole[1];
+    var hi = a.r >= b.r ? a : b;
+    var lo = a.r >= b.r ? b : a;
+    if (hi.r === lo.r) return n(hi.r) + n(lo.r);
+    return n(hi.r) + n(lo.r) + (hi.s === lo.s ? 's' : 'o');
+  }
+
+  /* 아직 완성되지 않은 드로와 아웃츠(승부를 뒤집을 남은 카드 수)를 센다 */
+  function analyzeDraws(hole, board) {
+    if (!board || board.length < 3 || board.length >= 5) return null;
+    var cards = hole.concat(board);
+    var cur = evaluate(cards);
+    var kinds = [];
+    var outSet = {};
+
+    function key(c) { return c.r + c.s; }
+
+    var seen = {};
+    for (var i = 0; i < cards.length; i++) seen[key(cards[i])] = true;
+
+    /* 남은 카드를 한 장씩 넣어 보고 족보가 올라가는지 본다 */
+    var full = Cards.createDeck();
+    var flushUp = 0, straightUp = 0, bigUp = 0;
+
+    for (var d = 0; d < full.length; d++) {
+      var c = full[d];
+      if (seen[key(c)]) continue;
+      var after = evaluate(cards.concat([c]));
+      if (after.cat > cur.cat) {
+        outSet[key(c)] = true;
+        if (after.cat === 5) flushUp++;
+        else if (after.cat === 4) straightUp++;
+        else if (after.cat >= 6) bigUp++;
+      }
+    }
+
+    var outs = Object.keys(outSet).length;
+    if (!outs) return null;
+
+    if (flushUp >= 7) kinds.push('플러시 드로');
+    if (straightUp >= 6) kinds.push('양방향 스트레이트 드로');
+    else if (straightUp > 0) kinds.push('스트레이트 드로');
+    if (bigUp > 0 && cur.cat >= 1) kinds.push('족보 상승 가능');
+
+    return { outs: outs, kinds: kinds };
+  }
+
   global.Evaluator = {
     CAT_NAME: CAT_NAME,
     evaluate: evaluate,
     compare: compare,
-    label: label
+    label: label,
+    holeNotation: holeNotation,
+    analyzeDraws: analyzeDraws
   };
 })(window);

@@ -169,11 +169,52 @@
     btn.className = 'dealer-btn d-' + G.button;
   }
 
+  /* 승률은 계산 비용이 있으므로 패·보드·인원이 바뀔 때만 다시 구한다 */
+  function currentEquity(me) {
+    var G = Game.data;
+    var opp = Math.max(1, Game.contenders().length - 1);
+    var key = me.hole.map(Cards.cardLabel).join('') + '|' +
+              G.board.map(Cards.cardLabel).join('') + '|' + opp;
+    if (state.eqKey === key) return state.eqVal;
+    state.eqKey = key;
+    state.eqVal = AI.equity(me.hole, G.board, opp, G.board.length >= 4 ? 500 : 320);
+    return state.eqVal;
+  }
+
   function renderMyHand() {
     var me = Game.human();
-    if (!me || !me.dealt || !me.hole.length) { $('myRank').textContent = '-'; return; }
-    var ev = Evaluator.evaluate(me.hole.concat(Game.data.board));
+    var G = Game.data;
+    if (!me || !me.dealt || !me.hole.length) {
+      $('myRank').textContent = '-';
+      $('myNotation').textContent = '';
+      $('equityText').textContent = '승률 -';
+      $('equityFill').style.width = '0%';
+      $('drawInfo').textContent = '';
+      return;
+    }
+
+    var ev = Evaluator.evaluate(me.hole.concat(G.board));
     $('myRank').textContent = Evaluator.label(ev);
+    $('myNotation').textContent = G.board.length === 0 ? Evaluator.holeNotation(me.hole) : '';
+
+    if (me.folded) {
+      $('equityText').textContent = '다이';
+      $('equityFill').style.width = '0%';
+      $('drawInfo').textContent = '';
+      return;
+    }
+
+    var eq = currentEquity(me);
+    var pct = Math.round(eq * 100);
+    $('equityText').textContent = '승률 ' + pct + '%';
+    var fill = $('equityFill');
+    fill.style.width = pct + '%';
+    fill.className = pct >= 60 ? 'good' : (pct >= 35 ? 'mid' : 'bad');
+
+    var dr = Evaluator.analyzeDraws(me.hole, G.board);
+    $('drawInfo').textContent = dr && dr.kinds.length
+      ? dr.kinds.join(' · ') + ' — 아웃츠 ' + dr.outs + '장'
+      : '';
   }
 
   function render() {
@@ -237,10 +278,9 @@
     slider.value = state.raiseTo;
     $('raiseAmt').textContent = fmt(state.raiseTo);
 
-    var eq = AI.equity(p.hole, Game.data.board, Math.max(1, Game.contenders().length - 1), 300);
-    $('actionHint').textContent =
-      '내 차례 — 예상 승률 ' + Math.round(eq * 100) + '%' +
-      (legal.toCall > 0 ? ' · 콜 하려면 ' + fmt(legal.toCall) : '');
+    $('actionHint').textContent = legal.toCall > 0
+      ? '내 차례 — 콜 하려면 ' + fmt(legal.toCall) + ' 필요'
+      : '내 차례 — 체크 또는 벳';
 
     render();
     startTurnTimer();
