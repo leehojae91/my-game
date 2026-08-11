@@ -75,6 +75,20 @@ html, body {
 .stat-v.down { color: #e2736a; }
 .stat-actions { display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end; }
 .stat-note { font-size: 11px; color: #7d8fa6; margin: 0 0 8px; line-height: 1.5; }
+
+/* 난이도 선택 */
+.level-list { display: flex; flex-direction: column; gap: 8px; }
+.level-item {
+  text-align: left; background: #1b2637; border: 1px solid #33465e;
+  border-radius: 10px; padding: 12px 14px; cursor: pointer;
+  color: var(--text); font-family: inherit; transition: border-color .15s, background .15s;
+}
+.level-item:hover { background: #223148; border-color: #4a6285; }
+.level-item.current { border-color: var(--gold); background: #232c31; }
+.lv-title { font-size: 15px; font-weight: 700; color: var(--gold); }
+.lv-now { font-size: 11px; color: #9fe3ba; font-weight: 600; }
+.lv-desc { font-size: 12px; color: #b6c6da; margin-top: 3px; line-height: 1.5; }
+.lv-meta { font-size: 11px; color: #7d8fa6; margin-top: 4px; }
 .rival-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .rival-table th {
   text-align: right; font-weight: 600; color: var(--muted); font-size: 11px;

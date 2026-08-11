@@ -21,6 +21,7 @@
     <div class="topbtns">
       <button id="btnAuto" class="ghost" title="판이 끝나면 자동으로 다음 판 시작">자동 진행 끔</button>
       <button id="btnSpeed" class="ghost" title="상대가 생각하는 시간">속도 보통</button>
+      <button id="btnLevel" class="ghost" title="상대 실력과 판돈 크기">난이도 중급</button>
       <button id="btnHint" class="ghost" title="승률과 드로 안내 표시 여부">힌트 켬</button>
       <button id="btnStats" class="ghost">전적</button>
       <button id="btnSound" class="ghost" title="소리 켜기/끄기">🔊</button>
@@ -96,6 +97,18 @@
     <div class="logtitle">진행 기록</div>
     <ul id="logList"></ul>
   </aside>
+</div>
+
+<!-- 난이도 -->
+<div class="modal" id="levelModal">
+  <div class="modal-inner">
+    <h2>난이도 선택</h2>
+    <p class="stat-note">난이도를 바꾸면 판돈과 상대가 새로 정해지고 보유 칩이 초기화됩니다. 누적 전적은 그대로 남습니다.</p>
+    <div class="level-list" id="levelList"></div>
+    <div class="stat-actions">
+      <button class="act call" id="btnCloseLevel">닫기</button>
+    </div>
+  </div>
 </div>
 
 <!-- 전적 -->

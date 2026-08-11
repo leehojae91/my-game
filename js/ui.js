@@ -5,10 +5,27 @@
   var STORE_KEY = 'singleHoldem.v1';
   var TURN_SECONDS = 20;
   var START_CHIPS = 100000;
-  var SMALL_BLIND = 500;
-  var BIG_BLIND = 1000;
 
   var AI_NAMES = ['강대호', '마돌이', '한칠구'];
+
+  /* 난이도 - 판돈 크기와 상대 실력이 함께 바뀐다 */
+  var LEVELS = {
+    easy: {
+      key: 'easy', label: '초급', sb: 250, bb: 500, chips: 100000, skill: 0.5,
+      personas: ['tight', 'loose', 'calm'],
+      desc: '판돈이 작고 상대가 실수를 자주 합니다. 규칙을 익히기 좋습니다.'
+    },
+    normal: {
+      key: 'normal', label: '중급', sb: 500, bb: 1000, chips: 100000, skill: 0.8,
+      personas: ['tight', 'loose', 'aggro', 'calm'],
+      desc: '성향이 제각각인 상대 셋과 겨룹니다. 기본 난이도입니다.'
+    },
+    hard: {
+      key: 'hard', label: '고급', sb: 1000, bb: 2000, chips: 100000, skill: 1,
+      personas: ['aggro', 'calm', 'tight'],
+      desc: '판돈이 크고 상대가 자리와 주도권을 정확히 활용합니다.'
+    }
+  };
 
   var $ = function (id) { return document.getElementById(id); };
   var fmt = function (n) { return (n || 0).toLocaleString('ko-KR'); };
@@ -24,6 +41,7 @@
     auto: false,
     fast: false,
     hint: true,
+    level: 'normal',
     autoTimer: null,
     autoPaused: false,
     chipsAtStart: 0,
@@ -73,7 +91,8 @@
         stats: stats,
         auto: state.auto,
         fast: state.fast,
-        hint: state.hint
+        hint: state.hint,
+        level: state.level
       }));
     } catch (e) { /* 저장 실패 무시 */ }
   }
@@ -410,7 +429,7 @@
   function refillAI() {
     Game.data.players.forEach(function (p) {
       if (!p.isHuman && p.chips < Game.data.bigBlind) {
-        p.chips = START_CHIPS;
+        p.chips = LEVELS[state.level].chips;
         addLog(p.name + ' 칩 보충', 'sys');
       }
     });
@@ -635,8 +654,10 @@
   }
 
   /* ---------- 초기화 ---------- */
-  function buildPlayers() {
-    var personas = AI.PERSONAS.slice();
+  function buildPlayers(lv) {
+    var personas = AI.PERSONAS.filter(function (p) {
+      return lv.personas.indexOf(p.key) >= 0;
+    });
     /* 성향을 무작위로 섞어 배정 */
     for (var i = personas.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
@@ -644,22 +665,100 @@
     }
     var list = [{ name: '나', isHuman: true }];
     AI_NAMES.forEach(function (n, i) {
-      list.push({ name: n, persona: personas[i % personas.length] });
+      var base = personas[i % personas.length];
+      /* 난이도의 실력 계수를 얹은 사본을 쓴다 (원본 공유 방지) */
+      list.push({
+        name: n,
+        persona: {
+          key: base.key, label: base.label,
+          aggr: base.aggr, tight: base.tight, bluff: base.bluff,
+          skill: lv.skill
+        }
+      });
     });
     return list;
   }
 
-  function init() {
-    Game.setup(buildPlayers(), {
-      smallBlind: SMALL_BLIND,
-      bigBlind: BIG_BLIND,
-      startChips: START_CHIPS
-    });
+  /* 상단 토글 버튼의 라벨과 켜짐 표시 */
+  function paintToggles() {
+    var a = $('btnAuto'), s = $('btnSpeed'), h = $('btnHint');
+    var narrow = window.innerWidth <= 780;   // 좁은 화면에서는 라벨을 줄인다
+    a.textContent = narrow
+      ? (state.auto ? '자동 켬' : '자동 끔')
+      : (state.auto ? '자동 진행 켬' : '자동 진행 끔');
+    a.classList.toggle('on', state.auto);
+    s.textContent = narrow
+      ? (state.fast ? '빠름' : '보통')
+      : (state.fast ? '속도 빠름' : '속도 보통');
+    s.classList.toggle('on', state.fast);
+    h.textContent = state.hint ? '힌트 켬' : '힌트 끔';
+    h.classList.toggle('on', state.hint);
+    $('btnLevel').textContent = (narrow ? '' : '난이도 ') + LEVELS[state.level].label;
+  }
 
+  function setupLevel(lv) {
+    Game.setup(buildPlayers(lv), {
+      smallBlind: lv.sb, bigBlind: lv.bb, startChips: lv.chips
+    });
+    Game.setSpeed(state.fast ? 0.45 : 1);
+  }
+
+  /* 사용자가 난이도를 바꾼 경우 - 판돈과 상대를 새로 정하고 칩을 초기화한다 */
+  function applyLevel(key) {
+    if (Game.data.inHand) Game.abort();
+    state.level = key;
+    var lv = LEVELS[key];
+    setupLevel(lv);
+    state.boardHand = -1;
+    state.boardCount = 0;
+    state.potShown = 0;
+    state.highlight = {};
+    state.eqKey = null;
+    stopTurnTimer();
+    showActionButtons(false);
+    $('btnRebuy').style.display = 'none';
+    $('btnStart').style.display = 'inline-block';
+    $('btnStart').textContent = '게임 시작';
+    $('resultBanner').className = 'result-banner';
+    $('actionHint').textContent = lv.label + ' 시작 — 게임 시작을 누르세요';
+    addLog('난이도 ' + lv.label + ' — 블라인드 ' + fmt(lv.sb) + '/' + fmt(lv.bb) +
+           ', 시작 칩 ' + fmt(lv.chips), 'sys');
+    save();
+    paintToggles();
+    render();
+  }
+
+  function renderLevelList() {
+    var html = '';
+    ['easy', 'normal', 'hard'].forEach(function (k) {
+      var lv = LEVELS[k];
+      html += '<button class="level-item' + (state.level === k ? ' current' : '') +
+        '" data-level="' + k + '">' +
+        '<div class="lv-title">' + lv.label +
+          (state.level === k ? ' <span class="lv-now">선택됨</span>' : '') + '</div>' +
+        '<div class="lv-desc">' + lv.desc + '</div>' +
+        '<div class="lv-meta">블라인드 ' + fmt(lv.sb) + ' / ' + fmt(lv.bb) + '</div>' +
+        '</button>';
+    });
+    $('levelList').innerHTML = html;
+    Array.prototype.forEach.call($('levelList').querySelectorAll('.level-item'), function (b) {
+      b.onclick = function () {
+        var k = this.dataset.level;
+        if (k !== state.level) applyLevel(k);
+        closeModal('levelModal');
+        renderLevelList();
+      };
+    });
+  }
+
+  function init() {
     var saved = load();
+    if (saved && saved.level && LEVELS[saved.level]) state.level = saved.level;
+    setupLevel(LEVELS[state.level]);
+
     if (saved && typeof saved.chips === 'number') {
       var me = Game.human();
-      me.chips = saved.chips > 0 ? saved.chips : START_CHIPS;
+      me.chips = saved.chips > 0 ? saved.chips : LEVELS[state.level].chips;
       Game.data.handNo = saved.handNo || 0;
       if (saved.stats) {
         for (var k in stats) if (saved.stats[k] !== undefined) stats[k] = saved.stats[k];
@@ -669,6 +768,7 @@
       if (saved.hint !== undefined) state.hint = !!saved.hint;
     }
     Game.setSpeed(state.fast ? 0.45 : 1);
+    renderLevelList();
 
     Game.setHooks({
       onUpdate: render,
@@ -698,8 +798,9 @@
     $('btnStart').onclick = startHand;
 
     $('btnRebuy').onclick = function () {
-      Game.human().chips = START_CHIPS;
-      addLog('리바이 — ' + fmt(START_CHIPS) + ' 칩 충전', 'sys');
+      var refill = LEVELS[state.level].chips;
+      Game.human().chips = refill;
+      addLog('리바이 — ' + fmt(refill) + ' 칩 충전', 'sys');
       save();
       render();
       $('btnRebuy').style.display = 'none';
@@ -736,21 +837,6 @@
       this.textContent = state.soundOn ? '🔊' : '🔇';
     };
 
-    function paintToggles() {
-      var a = $('btnAuto'), s = $('btnSpeed');
-      var narrow = window.innerWidth <= 780;   // 좁은 화면에서는 라벨을 줄인다
-      a.textContent = narrow
-        ? (state.auto ? '자동 켬' : '자동 끔')
-        : (state.auto ? '자동 진행 켬' : '자동 진행 끔');
-      a.classList.toggle('on', state.auto);
-      s.textContent = narrow
-        ? (state.fast ? '빠름' : '보통')
-        : (state.fast ? '속도 빠름' : '속도 보통');
-      s.classList.toggle('on', state.fast);
-      var h = $('btnHint');
-      h.textContent = state.hint ? '힌트 켬' : '힌트 끔';
-      h.classList.toggle('on', state.hint);
-    }
     window.addEventListener('resize', paintToggles);
 
     $('btnHint').onclick = function () {
@@ -773,6 +859,10 @@
       save();
     };
     paintToggles();
+
+    $('btnLevel').onclick = function () { renderLevelList(); openModal('levelModal'); };
+    $('btnCloseLevel').onclick = function () { closeModal('levelModal'); };
+    $('levelModal').onclick = function (e) { if (e.target === this) closeModal('levelModal'); };
 
     $('btnStats').onclick = function () { renderStats(); openModal('statsModal'); };
     $('btnCloseStats').onclick = function () { closeModal('statsModal'); };
@@ -799,8 +889,9 @@
     /* 단축키 */
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
-        if ($('statsModal').classList.contains('open')) closeModal('statsModal');
-        if ($('rulesModal').classList.contains('open')) closeModal('rulesModal');
+        ['statsModal', 'rulesModal', 'levelModal'].forEach(function (id) {
+          if ($(id).classList.contains('open')) closeModal(id);
+        });
         return;
       }
       if (!state.myTurn) {

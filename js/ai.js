@@ -102,11 +102,15 @@
     return wins.map(function (w) { return total ? w / total : 0; });
   }
 
-  function itersFor(street) {
-    if (street === 'preflop') return 400;
-    if (street === 'flop') return 500;
-    if (street === 'turn') return 650;
-    return 800;
+  /* 실력 계수가 낮은 상대는 표본을 적게 봐서 판단이 덜 정확해진다 */
+  function itersFor(street, skill) {
+    var base;
+    if (street === 'preflop') base = 400;
+    else if (street === 'flop') base = 500;
+    else if (street === 'turn') base = 650;
+    else base = 800;
+    var s = (typeof skill === 'number') ? skill : 1;
+    return Math.max(80, Math.round(base * (0.35 + s * 0.65)));
   }
 
   /**
@@ -145,7 +149,30 @@
    *             street, bigBlind, persona, streetBet, position, raises, isPreflopAggressor}
    * @returns {{action:'fold'|'check'|'call'|'raise', amount:number, eq:number}}
    */
+  /**
+   * 실력이 낮은 상대는 일정 확률로 명백한 실수를 저지른다.
+   * 접어야 할 자리에서 따라가거나, 충분히 좋은 패를 접는다.
+   */
+  function applyMistake(ctx, res, skill, eq) {
+    var rate = (1 - skill) * 0.35;
+    if (rate <= 0 || Math.random() >= rate) return res;
+
+    if (res.action === 'fold' && ctx.toCall > 0) {
+      return { action: 'call', amount: ctx.toCall, eq: eq, slip: true };
+    }
+    if ((res.action === 'call' || res.action === 'raise') && eq > 0.6 && ctx.toCall > 0) {
+      return { action: 'fold', amount: 0, eq: eq, slip: true };
+    }
+    return res;
+  }
+
   function decide(ctx) {
+    var skill = (typeof ctx.persona.skill === 'number') ? ctx.persona.skill : 1;
+    var res = decideCore(ctx);
+    return applyMistake(ctx, res, skill, res.eq);
+  }
+
+  function decideCore(ctx) {
     var p = ctx.persona;
     var pot = ctx.pot;
     var toCall = ctx.toCall;
@@ -153,11 +180,14 @@
     var pos = (typeof ctx.position === 'number') ? ctx.position : 0.5; // 0 얼리 ~ 1 버튼
     var raises = ctx.raises || 0;
 
-    var eq = equity(ctx.hole, ctx.board, ctx.oppCount, itersFor(ctx.street));
+    var skill = (typeof p.skill === 'number') ? p.skill : 1;
+    var eq = equity(ctx.hole, ctx.board, ctx.oppCount, itersFor(ctx.street, skill));
 
     /* 상대가 이번 라운드에 올렸다면 무작위 패보다 강할 확률이 높다 - 승률을 깎아 본다 */
-    var adj = eq * Math.pow(0.93, raises);
-    var noisy = Math.max(0, Math.min(1, adj + (Math.random() - 0.5) * 0.06));
+    var adj = eq * Math.pow(0.93, raises * skill);
+    /* 실력이 낮을수록 판단이 흔들린다 */
+    var noiseAmp = 0.06 + (1 - skill) * 0.22;
+    var noisy = Math.max(0, Math.min(1, adj + (Math.random() - 0.5) * noiseAmp));
 
     /* 늦은 자리일수록 공격적으로, 여러 명이 남았을수록 신중하게 */
     var aggr = Math.min(0.95, p.aggr + pos * 0.18);
