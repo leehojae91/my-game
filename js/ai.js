@@ -75,7 +75,7 @@
     var noisy = Math.max(0, Math.min(1, eq + (Math.random() - 0.5) * 0.06));
     var pot = ctx.pot;
     var toCall = ctx.toCall;
-    var canRaise = ctx.maxRaiseTo > ctx.minRaiseTo - 1 && ctx.chips > toCall;
+    var canRaise = (ctx.canRaise !== false) && ctx.maxRaiseTo > ctx.streetBet + toCall;
 
     function raiseTo(target) {
       var v = Math.round(target);

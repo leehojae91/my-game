@@ -53,6 +53,7 @@
         streetBet: 0,
         committed: 0,
         hasActed: false,
+        raiseLocked: false,
         lastAction: '',
         showCards: false,
         evalResult: null,
@@ -111,6 +112,7 @@
       p.streetBet = 0;
       p.committed = 0;
       p.hasActed = false;
+      p.raiseLocked = false;
       p.allIn = false;
       p.lastAction = '';
       p.showCards = false;
@@ -165,7 +167,8 @@
     return {
       toCall: toCall,
       canCheck: toCall === 0,
-      canRaise: maxRaiseTo > G.currentBet,
+      /* 언더 올인으로 액션이 재개되지 않은 사람은 다시 올릴 수 없다 */
+      canRaise: maxRaiseTo > G.currentBet && !p.raiseLocked,
       minRaiseTo: minRaiseTo,
       maxRaiseTo: maxRaiseTo
     };
@@ -196,25 +199,69 @@
       var target = Math.round(amount);
       if (target > L.maxRaiseTo) target = L.maxRaiseTo;
       if (target < L.minRaiseTo) target = L.minRaiseTo;
-      var delta = target - p.streetBet;
-      commit(p, delta);
-      var isRaise = G.currentBet > 0;
-      if (target > G.currentBet) {
-        var raiseSize = target - G.currentBet;
-        if (raiseSize >= G.minRaise) G.minRaise = raiseSize;
+      var prevBet = G.currentBet;
+      commit(p, target - p.streetBet);
+
+      if (target > prevBet) {
+        var raiseSize = target - prevBet;
+        var fullRaise = raiseSize >= G.minRaise;
         G.currentBet = target;
-        /* 새 베팅이 걸렸으니 나머지는 다시 액션해야 한다 */
-        G.players.forEach(function (o) {
-          if (o !== p && o.dealt && !o.folded && !o.allIn) o.hasActed = false;
-        });
+        if (fullRaise) {
+          G.minRaise = raiseSize;
+          /* 정상 레이즈 - 나머지는 다시 액션 기회를 얻는다 */
+          G.players.forEach(function (o) {
+            if (o !== p && o.dealt && !o.folded && !o.allIn) {
+              o.hasActed = false;
+              o.raiseLocked = false;
+            }
+          });
+        } else {
+          /* 최소 레이즈에 못 미치는 올인 - 이미 액션한 사람은 콜·다이만 가능 */
+          G.players.forEach(function (o) {
+            if (o !== p && o.dealt && !o.folded && !o.allIn && o.hasActed) o.raiseLocked = true;
+          });
+        }
       }
-      p.lastAction = p.allIn ? '올인' : (isRaise ? '레이즈' : '벳');
-      log(p.name + ' ' + p.lastAction + ' ' + fmt(target) + (p.allIn ? '' : ''), 'raise');
+      p.lastAction = p.allIn ? '올인' : (prevBet > 0 ? '레이즈' : '벳');
+      log(p.name + ' ' + p.lastAction + ' ' + fmt(target), 'raise');
       return;
     }
-    /* 위 어디에도 안 맞으면 안전하게 처리 */
+
+    /* 레이즈가 막힌 상황이면 콜로 처리 */
+    if (action === 'raise' && !L.canCheck) {
+      var paid2 = commit(p, L.toCall);
+      p.lastAction = p.allIn ? '올인 콜' : '콜';
+      log(p.name + ' 콜 ' + fmt(paid2) + (p.allIn ? ' (올인)' : ''), 'call');
+      return;
+    }
     if (L.canCheck) { p.lastAction = '체크'; log(p.name + ' 체크', 'check'); }
     else { p.folded = true; p.lastAction = '다이'; log(p.name + ' 다이', 'fold'); }
+  }
+
+  /* 아무도 받지 않은 초과 베팅은 되돌려 준다 */
+  function returnUncalled() {
+    var live = G.players.filter(function (p) { return p.dealt && !p.folded; });
+    if (!live.length) return;
+    var bets = G.players.filter(function (p) { return p.dealt; })
+      .map(function (p) { return p.streetBet; })
+      .sort(function (a, b) { return b - a; });
+    var top = bets[0] || 0;
+    var second = bets.length > 1 ? bets[1] : 0;
+    if (top <= second) return;
+
+    for (var i = 0; i < G.players.length; i++) {
+      var p = G.players[i];
+      if (p.dealt && !p.folded && p.streetBet === top) {
+        var back = top - second;
+        p.chips += back;
+        p.streetBet -= back;
+        p.committed -= back;
+        G.pot -= back;
+        if (p.chips > 0) p.allIn = false;
+        log(p.name + ' 초과 베팅 ' + fmt(back) + ' 반환', 'sys');
+        break;
+      }
+    }
   }
 
   /* ---------- 베팅 라운드 ---------- */
@@ -254,6 +301,7 @@
       chips: p.chips,
       minRaiseTo: L.minRaiseTo,
       maxRaiseTo: L.maxRaiseTo,
+      canRaise: L.canRaise,
       street: G.street,
       bigBlind: G.bigBlind,
       persona: p.persona,
@@ -286,7 +334,7 @@
 
     function step() {
       if (G.aborted) return Promise.resolve();
-      if (roundDone() || guard++ > 400) return Promise.resolve();
+      if (roundDone() || guard++ > 400) { returnUncalled(); return Promise.resolve(); }
       var p = G.players[idx];
       var needAct = p.dealt && !p.folded && !p.allIn && p.chips > 0 &&
         (!p.hasActed || p.streetBet < G.currentBet);
@@ -309,6 +357,7 @@
     G.players.forEach(function (p) {
       p.streetBet = 0;
       p.hasActed = false;
+      p.raiseLocked = false;
       if (!p.folded && p.dealt) p.lastAction = '';
     });
   }
