@@ -141,57 +141,35 @@ body.kr .persona { background: rgba(120,40,40,.7); color: #e6c7a0; border-color:
   color: #2a1a0c;
   overflow: hidden;
 }
+/* 그림이 카드 전체를 채운다 */
+.hart { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
 .hwa .hm {
-  position: absolute; top: 2px; left: 4px;
-  font-size: 12px; font-weight: 800; color: var(--kr-red-dim);
-}
-.hwa .hsym {
-  font-size: 26px; font-weight: 800; line-height: 1;
-  text-shadow: 0 1px 0 rgba(255,255,255,.7);
+  position: absolute; top: 1px; left: 2px; z-index: 2;
+  font-size: 11px; font-weight: 800; color: #7d1119;
+  background: rgba(255,250,238,.82); border-radius: 3px;
+  padding: 0 3px; line-height: 1.35;
 }
 .hwa .hk {
-  position: absolute; bottom: 2px; left: 0; right: 0;
-  text-align: center; font-size: 9px; font-weight: 700; color: #6b4a22;
+  position: absolute; bottom: 1px; left: 2px; right: 2px; z-index: 2;
+  text-align: center; font-size: 9px; font-weight: 800; color: #4a3418;
+  background: rgba(255,250,238,.78); border-radius: 3px; line-height: 1.4;
 }
-/* 달마다 다른 색 */
-.hwa.g1 .hsym { color: #1f6b3a; }
-.hwa.g2 .hsym { color: #c2437e; }
-.hwa.g3 .hsym { color: #d8557f; }
-.hwa.g4 .hsym { color: #4a3a6b; }
-.hwa.g5 .hsym { color: #7a4bb0; }
-.hwa.g6 .hsym { color: #b42a5a; }
-.hwa.g7 .hsym { color: #a8512a; }
-.hwa.g8 .hsym { color: #4a5a70; }
-.hwa.g9 .hsym { color: #c79a1e; }
-.hwa.g10 .hsym { color: #d2662a; }
 
 /* 광 */
 .hwa.gwang {
-  background: linear-gradient(170deg, #fff6d8 0%, #f4dfa0 55%, #eccd7e 100%);
   border-color: #a8181f;
   box-shadow: 0 4px 12px rgba(0,0,0,.55), 0 0 16px rgba(255,207,106,.7), inset 0 1px 0 rgba(255,255,255,.95);
 }
-.hwa.gwang .hk { color: var(--kr-red); font-weight: 800; font-size: 11px; }
+.hwa.gwang .hk { color: #a8181f; font-size: 10px; }
 
 /* 뒷면 */
-.hwa.back {
-  background:
-    repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 4px, transparent 4px 8px),
-    linear-gradient(170deg, #9c1c26 0%, #6e1119 60%, #4a0b11 100%);
-  border-color: #4a0b11;
-}
-.hwa.back::before {
-  content: '❋'; position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  color: rgba(255,220,170,.35); font-size: 22px;
-}
+.hwa.back { border-color: #4a0b11; }
 
 /* 작은 화투 (좌석) */
 .hwa.mini { width: 30px; height: 46px; border-width: 1px; border-radius: 4px; }
-.hwa.mini .hm { font-size: 8px; top: 1px; left: 2px; }
-.hwa.mini .hsym { font-size: 15px; }
-.hwa.mini .hk { font-size: 7px; bottom: 1px; }
-.hwa.mini.back::before { font-size: 13px; }
+.hwa.mini .hm { font-size: 8px; padding: 0 2px; }
+.hwa.mini .hk { font-size: 7px; }
 
 .handrow { display: flex; justify-content: center; gap: 3px; }
 
@@ -212,8 +190,7 @@ body.kr #app { grid-template-rows: 52px 1fr 178px; }
 /* 카드가 위로 삐져나오지 않도록 세로 가운데 정렬 */
 body.kr .controls { align-items: center; }
 .myhand { display: flex; gap: 5px; margin-bottom: 6px; min-height: 68px; }
-.myhand .hwa { width: 44px; height: 66px; }
-.myhand .hwa .hsym { font-size: 22px; }
+.myhand .hwa { width: 46px; height: 70px; }
 .myinfo { min-width: 300px; }
 .special-note {
   font-size: 12px; color: #ffcf6a; margin-top: 2px; min-height: 15px;
@@ -289,10 +266,9 @@ body.kr .modal-inner h3 { color: var(--gold); }
   body.kr .seat { width: 140px; padding: 4px 5px; }
   body.kr .avatar { width: 26px; height: 26px; flex-basis: 26px; font-size: 11px; }
   .hwa.mini { width: 25px; height: 38px; }
-  .hwa.mini .hsym { font-size: 12px; }
   .hwa.mini .hk { display: none; }
   .myhand { min-height: 62px; }
   .hwa { width: 40px; height: 60px; }
-  .hwa .hsym { font-size: 20px; }
+  .myhand .hwa { width: 40px; height: 60px; }
   .myinfo { min-width: 0; }
 }

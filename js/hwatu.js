@@ -47,19 +47,21 @@
 
   function key(c) { return c.m + '-' + c.i; }
 
-  /* 카드 한 장 마크업 */
+  /* 카드 한 장 마크업 - 그림은 SVG로 그린다 */
   function cardHtml(c, extraCls, attrs) {
     var info = MONTH[c.m];
+    var kind = c.k === '광' ? 'gwang' : 'pi';
     return '<div class="hwa ' + info.color + (c.k === '광' ? ' gwang' : '') +
       (extraCls ? ' ' + extraCls : '') + '"' + (attrs || '') + '>' +
+      HwatuArt.svgFor(c.m, kind, null) +
       '<span class="hm">' + c.m + '</span>' +
-      '<span class="hsym">' + info.name + '</span>' +
-      '<span class="hk">' + (c.k === '광' ? '광' : NUM_KO[c.m] + '점') + '</span>' +
+      '<span class="hk">' + (c.k === '광' ? '광' : info.name) + '</span>' +
       '</div>';
   }
 
   function backHtml(extraCls, attrs) {
-    return '<div class="hwa back' + (extraCls ? ' ' + extraCls : '') + '"' + (attrs || '') + '></div>';
+    return '<div class="hwa back' + (extraCls ? ' ' + extraCls : '') + '"' + (attrs || '') + '>' +
+      HwatuArt.backSvg() + '</div>';
   }
 
   global.Hwatu = {

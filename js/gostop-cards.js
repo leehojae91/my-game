@@ -77,10 +77,13 @@
 
   function cardHtml(c, extraCls, attrs) {
     var info = MONTH[c.m];
-    return '<div class="go ' + info.color + ' t-' + typeClass(c) +
+    var tc = typeClass(c);
+    /* 쌍피도 그림으로는 피 계열 */
+    var artKind = (tc === 'ssang') ? 'pi' : tc;
+    return '<div class="go ' + info.color + ' t-' + tc +
       (extraCls ? ' ' + extraCls : '') + '"' + (attrs || '') + ' data-id="' + c.id + '">' +
+      HwatuArt.svgFor(c.m, artKind, c.sub) +
       '<span class="gm">' + c.m + '</span>' +
-      '<span class="gsym">' + info.name + '</span>' +
       '<span class="gk">' + kindMark(c) + '</span>' +
       '</div>';
   }
@@ -93,7 +96,8 @@
   }
 
   function backHtml(extraCls) {
-    return '<div class="go back' + (extraCls ? ' ' + extraCls : '') + '"></div>';
+    return '<div class="go back' + (extraCls ? ' ' + extraCls : '') + '">' +
+      HwatuArt.backSvg() + '</div>';
   }
 
   global.GoCards = {
