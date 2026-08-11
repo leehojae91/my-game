@@ -1,0 +1,67 @@
+/* 세븐 포커 전용 - 좌석에 일곱 장이 들어가고 내 패는 아래에 크게 */
+
+/* 좌석을 위아래 두 칸으로 */
+.seat {
+  flex-direction: column; align-items: stretch; gap: 5px;
+  width: 190px; padding: 6px 7px;
+}
+.seat-top { display: flex; align-items: center; gap: 7px; }
+.seat .avatar { width: 34px; height: 34px; flex-basis: 34px; font-size: 13px; }
+.seat .seat-chips { font-size: 14px; }
+
+/* 좌석 카드 줄 */
+.hand7 { display: flex; justify-content: center; }
+.hand7 .card.mini {
+  width: 25px; height: 35px; border-radius: 4px;
+  margin-left: -5px; flex: 0 0 auto;
+}
+.hand7 .card.mini:first-child { margin-left: 0; }
+.hand7 .card.mini .ci { font-size: 9px; top: 1px; left: 2px; }
+.hand7 .card.mini .ci i { font-size: 6px; }
+.hand7 .card.mini .cpip { font-size: 13px; }
+.hand7 .card.mini.back::before { font-size: 11px; }
+.hand7 .card.mini.hit { transform: translateY(-4px) scale(1.08); }
+
+/* 좌석 위치를 살짝 넓게 (카드 줄이 아래에 붙는다) */
+#seat-0 { bottom: -18px; }
+#seat-2 { top: -10px; }
+#seat-2 .hole { transform: none; }
+
+/* 내 패 크게 */
+.myhand { display: flex; gap: 3px; margin-bottom: 8px; min-height: 62px; }
+.myhand .card {
+  width: 44px; height: 62px; border-radius: 6px; flex: 0 0 auto;
+  transition: transform .15s;
+}
+.myhand .card .ci { font-size: 12px; top: 2px; left: 3px; }
+.myhand .card .ci i { font-size: 8px; }
+.myhand .card .cpip { font-size: 24px; }
+.myhand .card.ci2 { display: none; }
+.myhand .card .ci2 { display: none; }
+/* 공개된 카드와 숨긴 카드를 구분 */
+.myhand .card.shown { box-shadow: 0 0 0 2px rgba(34,230,255,.55), 0 4px 10px rgba(0,0,0,.5); }
+.myhand .card.hidden-card { box-shadow: 0 4px 10px rgba(0,0,0,.5); opacity: .96; }
+.myhand .card.hit {
+  box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(255,210,90,.9);
+  transform: translateY(-4px);
+}
+
+.myinfo { min-width: 320px; }
+
+/* 세븐 포커는 공개 카드가 없어 가운데가 한산하다 - 팟을 조금 키운다 */
+.pot-box b { font-size: 20px; }
+
+@media (max-width: 1100px) {
+  .seat { width: 176px; }
+}
+@media (max-width: 780px) {
+  .seat { width: 150px; padding: 4px 5px; }
+  .seat .avatar { width: 26px; height: 26px; flex-basis: 26px; font-size: 11px; }
+  .hand7 .card.mini { width: 20px; height: 28px; margin-left: -4px; }
+  .hand7 .card.mini .ci { font-size: 8px; }
+  .hand7 .card.mini .ci i { display: none; }
+  .hand7 .card.mini .cpip { font-size: 10px; }
+  .myhand .card { width: 34px; height: 48px; }
+  .myhand .card .cpip { font-size: 18px; }
+  .myinfo { min-width: 0; }
+}

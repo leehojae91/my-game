@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>세븐 포커 - 혼자 즐기기</title>
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/seven.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand"><a class="home" href="index.html" title="게임 선택으로">♠</a> 세븐 포커</div>
+    <div class="topinfo">
+      <span class="chip-badge">보유 칩 <b id="myChips">0</b></span>
+      <span class="blind-badge">참가비 <b id="blindInfo">-</b></span>
+      <span class="hand-badge"><b id="handNo">0</b> 판째</span>
+    </div>
+    <div class="topbtns">
+      <button id="btnAuto" class="ghost">자동 진행 끔</button>
+      <button id="btnSpeed" class="ghost">속도 보통</button>
+      <button id="btnLevel" class="ghost">난이도 중급</button>
+      <button id="btnHint" class="ghost">힌트 켬</button>
+      <button id="btnStats" class="ghost">전적</button>
+      <button id="btnSound" class="ghost">🔊</button>
+      <button id="btnRules" class="ghost">규칙</button>
+      <button id="btnReset" class="ghost">초기화</button>
+    </div>
+  </header>
+
+  <main class="table-wrap">
+    <div class="table" id="table">
+      <div class="felt-logo">SEVEN</div>
+
+      <div class="center">
+        <div class="pot-chips" id="potChips"></div>
+        <div class="pot-box" id="potBox">팟 <b id="potAmt">0</b></div>
+        <div class="street-label" id="streetLabel"></div>
+      </div>
+
+      <div class="seat" id="seat-0"></div>
+      <div class="seat" id="seat-1"></div>
+      <div class="seat" id="seat-2"></div>
+      <div class="seat" id="seat-3"></div>
+
+      <div class="bet-chip" id="bet-0"></div>
+      <div class="bet-chip" id="bet-1"></div>
+      <div class="bet-chip" id="bet-2"></div>
+      <div class="bet-chip" id="bet-3"></div>
+
+      <div id="dealerBtn" class="dealer-btn">D</div>
+      <div class="result-banner" id="resultBanner"></div>
+    </div>
+  </main>
+
+  <section class="controls">
+    <div class="myinfo">
+      <div class="myhand" id="myHand"></div>
+      <div class="myrank">내 패 <b id="myRank">-</b></div>
+      <div class="equity-row">
+        <div class="equity-bar"><i id="equityFill"></i></div>
+        <span class="equity-text" id="equityText">승률 -</span>
+      </div>
+      <div class="hint" id="actionHint">새 게임을 시작하세요</div>
+      <div class="keys">단축키 <b>F</b> 다이 · <b>C</b> 체크·콜 · <b>R</b> 레이즈 · <b>1</b>~<b>5</b> 프리셋 · <b>Enter</b> 다음 판</div>
+    </div>
+
+    <div class="bet-area">
+      <div class="raise-panel" id="raisePanel">
+        <div class="presets">
+          <button class="preset" data-preset="min"><b>최소</b><span class="pamt">-</span></button>
+          <button class="preset" data-preset="half"><b>1/2 팟</b><span class="pamt">-</span></button>
+          <button class="preset" data-preset="threeq"><b>3/4 팟</b><span class="pamt">-</span></button>
+          <button class="preset" data-preset="pot"><b>팟</b><span class="pamt">-</span></button>
+          <button class="preset allin" data-preset="allin"><b>올인</b><span class="pamt">-</span></button>
+          <button class="preset tune" id="btnTune"><b>직접</b><span class="pamt">조절</span></button>
+        </div>
+        <div class="slider-row" id="sliderRow">
+          <input type="range" id="raiseSlider" min="0" max="100" value="0" />
+          <span class="raise-amt">베팅액 <b id="raiseAmt">0</b></span>
+        </div>
+      </div>
+
+      <div class="pre-actions" id="preActions">
+        <span class="pre-label">미리 정하기</span>
+        <button class="pre" data-pre="checkfold">체크 · 다이</button>
+        <button class="pre" data-pre="call">콜</button>
+      </div>
+
+      <div class="actions">
+        <button id="btnFold" class="act fold">다이</button>
+        <button id="btnCheck" class="act check">체크</button>
+        <button id="btnCall" class="act call">콜</button>
+        <button id="btnRaise" class="act raise">레이즈</button>
+        <button id="btnStart" class="act start">게임 시작</button>
+        <button id="btnRebuy" class="act rebuy">리바이</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="logbox">
+    <div class="logtitle">진행 기록</div>
+    <ul id="logList"></ul>
+  </aside>
+</div>
+
+<!-- 난이도 -->
+<div class="modal" id="levelModal">
+  <div class="modal-inner">
+    <h2>난이도 선택</h2>
+    <p class="stat-note">난이도를 바꾸면 참가비와 상대가 새로 정해지고 보유 칩이 초기화됩니다. 누적 전적은 그대로 남습니다.</p>
+    <div class="level-list" id="levelList"></div>
+    <div class="stat-actions"><button class="act call" id="btnCloseLevel">닫기</button></div>
+  </div>
+</div>
+
+<!-- 전적 -->
+<div class="modal" id="statsModal">
+  <div class="modal-inner">
+    <h2>전적</h2>
+    <div class="stat-grid" id="statGrid"></div>
+    <h3>상대 분석</h3>
+    <p class="stat-note">참여율은 첫 세 장에서 스스로 칩을 넣은 비율, 레이즈율은 그 단계에서 올린 비율, 공격성은 네 장째 이후 액션 중 올린 비율입니다.</p>
+    <table class="rival-table" id="rivalTable"></table>
+    <div class="stat-actions">
+      <button class="act fold" id="btnStatsClear">전적 지우기</button>
+      <button class="act call" id="btnCloseStats">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 규칙 -->
+<div class="modal" id="rulesModal">
+  <div class="modal-inner">
+    <h2>세븐 포커 규칙</h2>
+    <ul>
+      <li><b>진행</b> — 참가비를 낸 뒤 석 장을 받습니다. 앞의 두 장은 나만 보고, 세 번째 장은 모두에게 공개됩니다.</li>
+      <li><b>카드</b> — 네 · 다섯 · 여섯 번째 장은 공개로, 마지막 일곱 번째 장은 숨김으로 받습니다.</li>
+      <li><b>베팅</b> — 석 장을 받은 뒤부터 매번 베팅합니다. 총 다섯 번.</li>
+      <li><b>순서</b> — 공개된 카드가 가장 세 보이는 사람부터 말합니다.</li>
+      <li><b>승부</b> — 일곱 장 중 가장 좋은 다섯 장으로 겨룹니다.</li>
+    </ul>
+    <h3>족보 (높은 순)</h3>
+    <ol class="rank-list">
+      <li>로열 스트레이트 플러시 — 같은 무늬 10·J·Q·K·A</li>
+      <li>백스트레이트 플러시 — 같은 무늬 A·2·3·4·5</li>
+      <li>스트레이트 플러시 — 같은 무늬 연속 다섯 장</li>
+      <li>포카드 — 같은 숫자 넉 장</li>
+      <li>풀하우스 — 트리플 + 원페어</li>
+      <li>플러시 — 같은 무늬 다섯 장</li>
+      <li>마운틴 — 10·J·Q·K·A</li>
+      <li>스트레이트 — 연속 다섯 장</li>
+      <li>백스트레이트 — A·2·3·4·5</li>
+      <li>트리플 · 투페어 · 원페어 · 탑</li>
+    </ol>
+    <p class="stat-note">홀덤과 달리 마운틴과 백스트레이트가 따로 있고, 백스트레이트 플러시가 일반 스트레이트 플러시보다 높습니다.</p>
+    <h3>단축키</h3>
+    <ul>
+      <li><b>F</b> 다이 · <b>C</b> 체크 또는 콜 · <b>R</b> 레이즈 · <b>Enter</b> 다음 판 · <b>ESC</b> 창 닫기</li>
+      <li><b>1</b> 최소 · <b>2</b> 1/2 팟 · <b>3</b> 3/4 팟 · <b>4</b> 팟 · <b>5</b> 올인 — 누르는 즉시 베팅됩니다</li>
+    </ul>
+    <button class="act call" id="btnCloseRules">닫기</button>
+  </div>
+</div>
+
+<script src="js/cards.js"></script>
+<script src="js/evaluator.js"></script>
+<script src="js/kr-eval.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/seven-ai.js"></script>
+<script src="js/seven-game.js"></script>
+<script src="js/seven-ui.js"></script>
+</body>
+</html>
