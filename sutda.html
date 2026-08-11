@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>섯다 - 혼자 즐기기</title>
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/sutda.css" />
+</head>
+<body class="kr">
+
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand"><a class="home" href="index.html" title="게임 선택으로">❋</a> <span id="titleText">섯다</span></div>
+    <div class="topinfo">
+      <span class="chip-badge">가진 돈 <b id="myChips">0</b></span>
+      <span class="blind-badge">판돈 <b id="blindInfo">-</b></span>
+      <span class="hand-badge"><b id="handNo">0</b> 판째</span>
+    </div>
+    <div class="topbtns">
+      <button id="btnAuto" class="ghost">자동 진행 끔</button>
+      <button id="btnSpeed" class="ghost">속도 보통</button>
+      <button id="btnLevel" class="ghost">난이도 중급</button>
+      <button id="btnHint" class="ghost">힌트 켬</button>
+      <button id="btnStats" class="ghost">전적</button>
+      <button id="btnSound" class="ghost">🔊</button>
+      <button id="btnRules" class="ghost">규칙</button>
+      <button id="btnReset" class="ghost">초기화</button>
+    </div>
+  </header>
+
+  <main class="table-wrap">
+    <div class="table" id="table">
+      <div class="felt-logo" id="feltLogo">섯다</div>
+
+      <div class="center">
+        <div class="pot-chips" id="potChips"></div>
+        <div class="pot-box" id="potBox">판돈 <b id="potAmt">0</b></div>
+        <div class="street-label" id="streetLabel"></div>
+      </div>
+
+      <div class="seat" id="seat-0"></div>
+      <div class="seat" id="seat-1"></div>
+      <div class="seat" id="seat-2"></div>
+      <div class="seat" id="seat-3"></div>
+
+      <div class="bet-chip" id="bet-0"></div>
+      <div class="bet-chip" id="bet-1"></div>
+      <div class="bet-chip" id="bet-2"></div>
+      <div class="bet-chip" id="bet-3"></div>
+
+      <div id="dealerBtn" class="dealer-btn">선</div>
+      <div class="result-banner" id="resultBanner"></div>
+    </div>
+  </main>
+
+  <section class="controls">
+    <div class="myinfo">
+      <div class="myhand" id="myHand"></div>
+      <div class="myrank">내 패 <b id="myRank">-</b></div>
+      <div class="special-note" id="specialNote"></div>
+      <div class="equity-row">
+        <div class="equity-bar"><i id="equityFill"></i></div>
+        <span class="equity-text" id="equityText">승률 -</span>
+      </div>
+      <div class="hint" id="actionHint">새 판을 시작하세요</div>
+      <div class="keys">단축키 <b>F</b> 다이 · <b>C</b> 체크·콜 · <b>R</b> 베팅 · <b>1</b>~<b>5</b> 프리셋 · <b>Enter</b> 다음 판</div>
+    </div>
+
+    <div class="bet-area">
+      <div class="raise-panel" id="raisePanel">
+        <div class="presets">
+          <button class="preset" data-preset="min"><b>삥</b><span class="pamt">-</span></button>
+          <button class="preset" data-preset="quarter"><b>쿼터</b><span class="pamt">-</span></button>
+          <button class="preset" data-preset="half"><b>하프</b><span class="pamt">-</span></button>
+          <button class="preset" data-preset="pot"><b>풀</b><span class="pamt">-</span></button>
+          <button class="preset allin" data-preset="allin"><b>올인</b><span class="pamt">-</span></button>
+          <button class="preset tune" id="btnTune"><b>직접</b><span class="pamt">조절</span></button>
+        </div>
+        <div class="slider-row" id="sliderRow">
+          <input type="range" id="raiseSlider" min="0" max="100" value="0" />
+          <span class="raise-amt">베팅액 <b id="raiseAmt">0</b></span>
+        </div>
+      </div>
+
+      <div class="pre-actions" id="preActions">
+        <span class="pre-label">미리 정하기</span>
+        <button class="pre" data-pre="checkfold">체크 · 다이</button>
+        <button class="pre" data-pre="call">콜</button>
+      </div>
+
+      <div class="actions">
+        <button id="btnFold" class="act fold">다이</button>
+        <button id="btnCheck" class="act check">체크</button>
+        <button id="btnCall" class="act call">콜</button>
+        <button id="btnRaise" class="act raise">베팅</button>
+        <button id="btnStart" class="act start">판 시작</button>
+        <button id="btnRebuy" class="act rebuy">다시 채우기</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="logbox">
+    <div class="logtitle">판 기록</div>
+    <ul id="logList"></ul>
+  </aside>
+</div>
+
+<div class="modal" id="levelModal">
+  <div class="modal-inner">
+    <h2>난이도 선택</h2>
+    <p class="stat-note">난이도를 바꾸면 판돈과 상대가 새로 정해지고 가진 돈이 초기화됩니다. 누적 전적은 그대로 남습니다.</p>
+    <div class="level-list" id="levelList"></div>
+    <div class="stat-actions"><button class="act call" id="btnCloseLevel">닫기</button></div>
+  </div>
+</div>
+
+<div class="modal" id="statsModal">
+  <div class="modal-inner">
+    <h2>전적</h2>
+    <div class="stat-grid" id="statGrid"></div>
+    <h3>상대 분석</h3>
+    <p class="stat-note">참여율은 첫 베팅에서 스스로 돈을 넣은 비율, 베팅율은 그때 먼저 지른 비율, 공격성은 마지막 장 이후 액션 중 올린 비율입니다.</p>
+    <table class="rival-table" id="rivalTable"></table>
+    <div class="stat-actions">
+      <button class="act fold" id="btnStatsClear">전적 지우기</button>
+      <button class="act call" id="btnCloseStats">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="rulesModal">
+  <div class="modal-inner">
+    <h2 id="rulesTitle">섯다 규칙</h2>
+    <ul id="rulesFlow"></ul>
+    <h3>족보 (높은 순)</h3>
+    <ol class="rank-list">
+      <li><b>삼팔광땡</b> — 3월 광 + 8월 광</li>
+      <li><b>일삼광땡</b> — 1월 광 + 3월 광</li>
+      <li><b>일팔광땡</b> — 1월 광 + 8월 광</li>
+      <li><b>땡</b> — 같은 달 두 장. 장땡(10)이 가장 높고 한땡(1)이 가장 낮다</li>
+      <li><b>알리</b> 1+2 · <b>독사</b> 1+4 · <b>구삥</b> 1+9 · <b>장삥</b> 1+10 · <b>장사</b> 4+10 · <b>세륙</b> 4+6</li>
+      <li><b>끗</b> — 두 달을 더한 값의 일의 자리. 갑오(9)가 가장 높고 망통(0)이 가장 낮다</li>
+    </ol>
+    <h3>특수패</h3>
+    <ul>
+      <li><b>암행어사</b> (4 + 7) — 상대의 일삼광땡과 일팔광땡을 잡습니다. 삼팔광땡은 못 잡습니다.</li>
+      <li><b>땡잡이</b> (3 + 7) — 상대의 땡을 잡습니다. 장땡은 못 잡습니다.</li>
+    </ul>
+    <h3>베팅</h3>
+    <ul>
+      <li><b>삥</b> 최소 금액 · <b>쿼터</b> 판돈의 사분의 일 · <b>하프</b> 절반 · <b>풀</b> 판돈 전부 · <b>올인</b> 가진 돈 전부</li>
+      <li><b>다이</b> 포기 · <b>체크</b> 그대로 넘기기 · <b>콜</b> 상대 금액 맞추기</li>
+    </ul>
+    <h3>단축키</h3>
+    <ul>
+      <li><b>F</b> 다이 · <b>C</b> 체크 또는 콜 · <b>R</b> 베팅 · <b>Enter</b> 다음 판 · <b>ESC</b> 창 닫기</li>
+      <li><b>1</b> 삥 · <b>2</b> 쿼터 · <b>3</b> 하프 · <b>4</b> 풀 · <b>5</b> 올인 — 누르는 즉시 베팅됩니다</li>
+    </ul>
+    <button class="act call" id="btnCloseRules">닫기</button>
+  </div>
+</div>
+
+<script src="js/hwatu.js"></script>
+<script src="js/sutda-eval.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/sutda-ai.js"></script>
+<script src="js/sutda-game.js"></script>
+<script src="js/sutda-ui.js"></script>
+</body>
+</html>
