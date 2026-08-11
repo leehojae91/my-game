@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>싱글 홀덤 - 텍사스 홀덤 혼자 즐기기</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- 상단 바 -->
+  <header class="topbar">
+    <div class="brand"><span class="logo">♠</span> 싱글 홀덤</div>
+    <div class="topinfo">
+      <span class="chip-badge">보유 칩 <b id="myChips">0</b></span>
+      <span class="blind-badge">블라인드 <b id="blindInfo">-</b></span>
+      <span class="hand-badge"><b id="handNo">0</b> 판째</span>
+    </div>
+    <div class="topbtns">
+      <button id="btnSound" class="ghost" title="소리 켜기/끄기">🔊</button>
+      <button id="btnRules" class="ghost">규칙</button>
+      <button id="btnReset" class="ghost">초기화</button>
+    </div>
+  </header>
+
+  <!-- 테이블 -->
+  <main class="table-wrap">
+    <div class="table" id="table">
+      <div class="felt-logo">HOLD'EM</div>
+
+      <div class="center">
+        <div class="pot-box">팟 <b id="potAmt">0</b></div>
+        <div class="community" id="community"></div>
+        <div class="street-label" id="streetLabel"></div>
+      </div>
+
+      <!-- 좌석 4개: 0=나(하단), 1=좌, 2=상, 3=우 -->
+      <div class="seat" id="seat-0"></div>
+      <div class="seat" id="seat-1"></div>
+      <div class="seat" id="seat-2"></div>
+      <div class="seat" id="seat-3"></div>
+
+      <div class="bet-chip" id="bet-0"></div>
+      <div class="bet-chip" id="bet-1"></div>
+      <div class="bet-chip" id="bet-2"></div>
+      <div class="bet-chip" id="bet-3"></div>
+
+      <div id="dealerBtn" class="dealer-btn">D</div>
+
+      <div class="result-banner" id="resultBanner"></div>
+    </div>
+  </main>
+
+  <!-- 하단 조작부 -->
+  <section class="controls">
+    <div class="myinfo">
+      <div class="myrank">내 패 <b id="myRank">-</b></div>
+      <div class="hint" id="actionHint">새 게임을 시작하세요</div>
+    </div>
+
+    <div class="raise-panel" id="raisePanel">
+      <div class="presets">
+        <button class="preset" data-preset="min">최소</button>
+        <button class="preset" data-preset="half">하프</button>
+        <button class="preset" data-preset="pot">팟</button>
+        <button class="preset" data-preset="allin">올인</button>
+      </div>
+      <input type="range" id="raiseSlider" min="0" max="100" value="0" />
+      <div class="raise-amt">베팅액 <b id="raiseAmt">0</b></div>
+    </div>
+
+    <div class="actions">
+      <button id="btnFold" class="act fold">다이</button>
+      <button id="btnCheck" class="act check">체크</button>
+      <button id="btnCall" class="act call">콜</button>
+      <button id="btnRaise" class="act raise">레이즈</button>
+      <button id="btnStart" class="act start">게임 시작</button>
+      <button id="btnRebuy" class="act rebuy">리바이</button>
+    </div>
+  </section>
+
+  <!-- 진행 기록 -->
+  <aside class="logbox">
+    <div class="logtitle">진행 기록</div>
+    <ul id="logList"></ul>
+  </aside>
+</div>
+
+<!-- 규칙 안내 -->
+<div class="modal" id="rulesModal">
+  <div class="modal-inner">
+    <h2>텍사스 홀덤 규칙</h2>
+    <ul>
+      <li><b>진행</b> — 각자 개인 카드 2장을 받고, 테이블에 공개 카드가 플랍 3장 · 턴 1장 · 리버 1장 순으로 깔린다. 개인 2장 + 공개 5장, 총 7장 중 가장 좋은 5장으로 승부.</li>
+      <li><b>베팅</b> — 프리플랍 · 플랍 · 턴 · 리버, 총 네 번의 베팅 라운드가 있다.</li>
+      <li><b>다이</b> 포기 · <b>체크</b> 추가 베팅 없이 넘기기 · <b>콜</b> 상대 베팅액 맞추기 · <b>레이즈</b> 금액 올리기.</li>
+      <li><b>블라인드</b> — 딜러 버튼 왼쪽 두 명이 스몰/빅 블라인드를 강제로 낸다. 매 판 버튼이 시계 방향으로 넘어간다.</li>
+      <li><b>올인</b> — 칩이 부족하면 가진 만큼만 걸 수 있고, 초과분은 사이드 팟으로 분리된다.</li>
+    </ul>
+    <h3>족보 (높은 순)</h3>
+    <ol class="rank-list">
+      <li>로열 스트레이트 플러시 — 같은 무늬 10·J·Q·K·A</li>
+      <li>스트레이트 플러시 — 같은 무늬 연속 5장</li>
+      <li>포카드 — 같은 숫자 4장</li>
+      <li>풀하우스 — 트리플 + 원페어</li>
+      <li>플러시 — 같은 무늬 5장</li>
+      <li>스트레이트 — 연속 5장 (A는 위아래 모두 가능)</li>
+      <li>트리플 — 같은 숫자 3장</li>
+      <li>투페어 — 페어 2개</li>
+      <li>원페어 — 같은 숫자 2장</li>
+      <li>하이카드 — 위 어디에도 못 드는 경우</li>
+    </ol>
+    <button class="act call" id="btnCloseRules">닫기</button>
+  </div>
+</div>
+
+<script src="js/cards.js"></script>
+<script src="js/evaluator.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
