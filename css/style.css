@@ -113,6 +113,28 @@ body::after {
   box-shadow: 0 0 10px rgba(255,61,154,.55), inset 0 0 8px rgba(255,61,154,.25);
 }
 
+/* 모바일 옵션 메뉴 토글(햄버거) - 데스크톱에선 숨김 */
+.menu-toggle {
+  display: none; flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px;
+  background: rgba(60,30,96,.72); border: 1px solid rgba(162,75,255,.5); cursor: pointer;
+  padding: 0; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+}
+.menu-toggle span {
+  display: block; width: 18px; height: 2px; border-radius: 2px;
+  background: #d9c6f5; transition: transform .2s, opacity .2s;
+}
+.menu-toggle.active span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.menu-toggle.active span:nth-child(2) { opacity: 0; }
+.menu-toggle.active span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+body.kr .menu-toggle { background: rgba(96,32,32,.72); border-color: rgba(255,207,106,.42); }
+body.kr .menu-toggle span { background: #f0d9b4; }
+
+/* ---------- 모바일 앱 감성 마감 ---------- */
+html { -webkit-tap-highlight-color: transparent; }
+.act, .ghost, .preset, .pre, .menu-toggle, .card, .go, .hwa, .seat, .avatar {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+
 /* 전적 창 */
 .stat-grid {
   display: grid; grid-template-columns: auto 1fr; gap: 8px 18px;
@@ -858,7 +880,8 @@ body::after {
 
 @media (max-width: 780px) {
   :root { --card-w: 38px; --card-h: 54px; }
-  #app { grid-template-rows: auto 1fr auto 92px; gap: 6px; padding: 6px; }
+  body { overscroll-behavior-y: contain; }
+  #app { grid-template-rows: auto 1fr auto 92px; gap: 6px; padding: 6px 6px max(6px, env(safe-area-inset-bottom)); }
   /* 상단바: 정보는 윗줄, 옵션 버튼은 아랫줄에 골고루 채우는 터치 바 */
   .topbar {
     flex-wrap: wrap; row-gap: 7px; padding: 7px 9px; overflow: visible;
@@ -866,17 +889,31 @@ body::after {
   .brand { font-size: 0; flex: 0 0 auto; }
   .brand span:not(.logo) { display: none; }
   .brand .logo, .brand .home { font-size: 22px; }
+  .topbar { position: relative; flex-wrap: nowrap; }
   .topinfo {
     flex: 1 1 auto; gap: 10px; font-size: 12px; min-width: 0;
     justify-content: flex-end; white-space: nowrap;
   }
   .chip-badge { flex: 0 0 auto; }
   .blind-badge, .hand-badge { display: none; }
-  .topbtns { flex: 1 1 100%; flex-wrap: wrap; gap: 6px; }
-  .ghost {
-    flex: 1 1 auto; min-height: 42px; padding: 8px 10px; font-size: 12.5px;
-    display: inline-flex; align-items: center; justify-content: center;
-    line-height: 1.1;
+  .menu-toggle { display: flex; }
+  /* 옵션 버튼들은 ☰ 를 눌렀을 때 뜨는 드롭다운으로 접는다 */
+  .topbtns {
+    display: none; position: absolute; top: calc(100% + 7px); right: 4px; z-index: 60;
+    flex-direction: column; align-items: stretch; gap: 6px; width: min(248px, 74vw);
+    background: linear-gradient(180deg, rgba(46,22,74,.98), rgba(20,10,36,.98));
+    border: 1px solid rgba(255,210,90,.42); border-radius: 12px; padding: 8px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  body.kr .topbtns {
+    background: linear-gradient(180deg, rgba(58,20,20,.98), rgba(22,9,10,.98));
+    border-color: rgba(255,207,106,.4);
+  }
+  .topbtns.open { display: flex; animation: menuDrop .16s ease-out; }
+  @keyframes menuDrop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  .topbtns .ghost {
+    width: 100%; min-height: 46px; padding: 10px 12px; font-size: 14px;
+    display: inline-flex; align-items: center; justify-content: center; line-height: 1.1;
   }
   .felt-logo { display: none; }
   .table { padding: 8px; border-radius: 172px / 142px; }
