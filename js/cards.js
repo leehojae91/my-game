@@ -40,16 +40,18 @@
     return !!RED_SUITS[card.s];
   }
 
+  /* 카드 앞면 그림 - 실제 카드 이미지(SVG) 한 장으로 채운다 */
+  function faceInner(card) {
+    return '<img class="cface" src="assets/cards/' + card.s + card.r +
+      '.svg" alt="' + cardLabel(card) + '" draggable="false">';
+  }
+
   /* 카드 한 장을 DOM 엘리먼트로 */
   function cardEl(card, faceDown) {
     var el = document.createElement('div');
     el.className = 'card' + (faceDown ? ' back' : (isRed(card) ? ' red' : ' black'));
     if (!faceDown) {
-      /* 모서리 인덱스 + 가운데 무늬 (화면 쪽 마크업과 같은 구조) */
-      el.innerHTML =
-        '<span class="ci">' + RANK_LABEL[card.r] + '<i>' + SUIT_SYMBOL[card.s] + '</i></span>' +
-        '<span class="cpip">' + SUIT_SYMBOL[card.s] + '</span>' +
-        '<span class="ci ci2">' + RANK_LABEL[card.r] + '<i>' + SUIT_SYMBOL[card.s] + '</i></span>';
+      el.innerHTML = faceInner(card);
     }
     return el;
   }
@@ -62,6 +64,7 @@
     shuffle: shuffle,
     cardLabel: cardLabel,
     isRed: isRed,
+    faceInner: faceInner,
     cardEl: cardEl
   };
 })(window);

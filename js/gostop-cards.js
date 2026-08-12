@@ -75,14 +75,36 @@
     return c.sub === '쌍피' ? '쌍' : '피';
   }
 
+  /* 실제 화투 그림 파일 - TABLE 순서(=카드 id)와 1:1 대응하는 48장 */
+  var IMG = [
+    '01-g', '01-t', '01-p1', '01-p2',   /* 1월 솔  */
+    '02-a', '02-t', '02-p1', '02-p2',   /* 2월 매  */
+    '03-g', '03-t', '03-p1', '03-p2',   /* 3월 벚  */
+    '04-a', '04-t', '04-p1', '04-p2',   /* 4월 흑  */
+    '05-a', '05-t', '05-p1', '05-p2',   /* 5월 난  */
+    '06-a', '06-t', '06-p1', '06-p2',   /* 6월 모  */
+    '07-a', '07-t', '07-p1', '07-p2',   /* 7월 홍  */
+    '08-g', '08-a', '08-p1', '08-p2',   /* 8월 공  */
+    '09-a', '09-t', '09-p1', '09-p2',   /* 9월 국  */
+    '10-a', '10-t', '10-p1', '10-p2',   /* 10월 단 */
+    '11-g', '11-p3', '11-p1', '11-p2',  /* 11월 오 (쌍피=p3) */
+    '12-g', '12-a', '12-t', '12-p1'     /* 12월 비 (쌍피=p1) */
+  ];
+
+  function imgKey(c) {
+    return (typeof c.id === 'number' && IMG[c.id]) ? IMG[c.id] : null;
+  }
+
   function cardHtml(c, extraCls, attrs) {
     var info = MONTH[c.m];
     var tc = typeClass(c);
-    /* 쌍피도 그림으로는 피 계열 */
-    var artKind = (tc === 'ssang') ? 'pi' : tc;
+    var key = imgKey(c);
+    var art = key
+      ? '<img class="gface" src="assets/hwatu/' + key + '.svg" alt="' + label(c) + '" draggable="false">'
+      : HwatuArt.svgFor(c.m, (tc === 'ssang') ? 'pi' : tc, c.sub);
     return '<div class="go ' + info.color + ' t-' + tc +
       (extraCls ? ' ' + extraCls : '') + '"' + (attrs || '') + ' data-id="' + c.id + '">' +
-      HwatuArt.svgFor(c.m, artKind, c.sub) +
+      art +
       '<span class="gm">' + c.m + '</span>' +
       '<span class="gk">' + kindMark(c) + '</span>' +
       '</div>';

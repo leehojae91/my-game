@@ -47,13 +47,27 @@
 
   function key(c) { return c.m + '-' + c.i; }
 
-  /* 카드 한 장 마크업 - 그림은 SVG로 그린다 */
+  /* 각 달의 두 장(i=0,1)을 실제 화투 그림 파일에 대응시킨다.
+     광이 있는 달(1·3·8)은 i0이 광, 나머지는 열끗/띠 그림을 쓴다. */
+  var IMG = {
+    1:  ['01-g', '01-t'], 2:  ['02-a', '02-t'], 3:  ['03-g', '03-t'],
+    4:  ['04-a', '04-t'], 5:  ['05-a', '05-t'], 6:  ['06-a', '06-t'],
+    7:  ['07-a', '07-t'], 8:  ['08-g', '08-a'], 9:  ['09-a', '09-t'],
+    10: ['10-a', '10-t']
+  };
+
+  function imgKey(c) {
+    var pair = IMG[c.m] || IMG[1];
+    return pair[c.i] || pair[0];
+  }
+
+  /* 카드 한 장 마크업 - 실제 화투 이미지 한 장으로 채운다 */
   function cardHtml(c, extraCls, attrs) {
     var info = MONTH[c.m];
-    var kind = c.k === '광' ? 'gwang' : 'pi';
     return '<div class="hwa ' + info.color + (c.k === '광' ? ' gwang' : '') +
       (extraCls ? ' ' + extraCls : '') + '"' + (attrs || '') + '>' +
-      HwatuArt.svgFor(c.m, kind, null) +
+      '<img class="hface" src="assets/hwatu/' + imgKey(c) + '.svg" alt="' +
+        label(c) + '" draggable="false">' +
       '<span class="hm">' + c.m + '</span>' +
       '<span class="hk">' + (c.k === '광' ? '광' : info.name) + '</span>' +
       '</div>';

@@ -93,13 +93,9 @@
 
   /* 카드 한 장 마크업 - 모서리 인덱스 + 가운데 큰 무늬 */
   function cardHtml(c, extraCls, attrs) {
-    var r = Cards.RANK_LABEL[c.r];
-    var s = Cards.SUIT_SYMBOL[c.s];
     return '<div class="card ' + (Cards.isRed(c) ? 'red' : 'black') +
       (extraCls ? ' ' + extraCls : '') + '"' + (attrs || '') + '>' +
-      '<span class="ci">' + r + '<i>' + s + '</i></span>' +
-      '<span class="cpip">' + s + '</span>' +
-      '<span class="ci ci2">' + r + '<i>' + s + '</i></span>' +
+      Cards.faceInner(c) +
       '</div>';
   }
 
@@ -314,10 +310,7 @@
       el.className = 'card board-card fresh ' + (Cards.isRed(c) ? 'red' : 'black');
       el.style.animationDelay = ((j - state.boardCount) * 0.11) + 's';
       el.dataset.key = cardKey(c);
-      el.innerHTML =
-        '<span class="ci">' + Cards.RANK_LABEL[c.r] + '<i>' + Cards.SUIT_SYMBOL[c.s] + '</i></span>' +
-        '<span class="cpip">' + Cards.SUIT_SYMBOL[c.s] + '</span>' +
-        '<span class="ci ci2">' + Cards.RANK_LABEL[c.r] + '<i>' + Cards.SUIT_SYMBOL[c.s] + '</i></span>';
+      el.innerHTML = Cards.faceInner(c);
     }
     state.boardCount = G.board.length;
 

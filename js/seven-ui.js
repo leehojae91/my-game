@@ -88,12 +88,9 @@
 
   /* ---------- 카드 · 칩 마크업 ---------- */
   function cardHtml(c, extraCls, attrs) {
-    var r = Cards.RANK_LABEL[c.r], s = Cards.SUIT_SYMBOL[c.s];
     return '<div class="card ' + (Cards.isRed(c) ? 'red' : 'black') +
       (extraCls ? ' ' + extraCls : '') + '"' + (attrs || '') + '>' +
-      '<span class="ci">' + r + '<i>' + s + '</i></span>' +
-      '<span class="cpip">' + s + '</span>' +
-      '<span class="ci ci2">' + r + '<i>' + s + '</i></span>' +
+      Cards.faceInner(c) +
       '</div>';
   }
 
