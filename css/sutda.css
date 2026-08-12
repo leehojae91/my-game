@@ -263,7 +263,16 @@ body.kr .modal-inner h3 { color: var(--gold); }
   body.kr .seat { width: 170px; }
 }
 @media (max-width: 780px) {
-  body.kr .seat { width: 140px; padding: 4px 5px; }
+  /* 2행이 된 모바일 상단바가 테이블에 가리지 않도록 top 행을 auto로 */
+  body.kr #app { grid-template-rows: auto 1fr auto auto; gap: 6px; padding: 6px; }
+  /* 조작부: 내 정보 위, 베팅 버튼 아래로 세로 스택 + 줄바꿈 (가로 넘침 방지) */
+  body.kr .controls { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; }
+  body.kr .myinfo, body.kr .bet-area { min-width: 0; width: 100%; }
+  body.kr .actions { flex-wrap: wrap; gap: 6px; }
+  body.kr .act { flex: 1 1 30%; min-height: 50px; font-size: 14px; }
+  body.kr .preset { flex: 1 1 auto; min-height: 44px; }
+  body.kr .myhand { justify-content: center; }
+  body.kr .seat { width: 116px; padding: 4px 5px; }
   body.kr .avatar { width: 26px; height: 26px; flex-basis: 26px; font-size: 11px; }
   .hwa.mini { width: 25px; height: 38px; }
   .hwa.mini .hk { display: none; }
