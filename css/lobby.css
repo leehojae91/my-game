@@ -101,8 +101,13 @@ body::after {
 }
 
 .gc-art { display: flex; gap: 6px; align-items: center; height: 62px; }
+/* 실제 카드·화투 그림이 조각을 가득 채운다 */
+.gc-face {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; display: block; border-radius: inherit;
+}
 .mini-card {
-  position: relative;
+  position: relative; overflow: hidden;
   width: 42px; height: 58px; border-radius: 6px;
   background: linear-gradient(157deg, #fffefa, #e9e5d9);
   border: 1px solid #cbc6b7;
@@ -118,6 +123,7 @@ body::after {
 
 /* 화투 느낌 조각 */
 .hana {
+  position: relative; overflow: hidden;
   width: 40px; height: 58px; border-radius: 5px;
   background: linear-gradient(170deg, #f6efe0 0%, #e6d9bd 100%);
   border: 2px solid var(--kr-red);
